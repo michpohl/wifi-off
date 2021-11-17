@@ -8,3 +8,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Wifi Tool"
 include ':app'
+include ':service'
