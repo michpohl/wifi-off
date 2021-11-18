@@ -34,6 +34,9 @@ android {
 
 dependencies {
 
+    // Logging
+    api 'com.jakewharton.timber:timber:4.7.1'
+
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.media:media:1.4.3'
     implementation 'androidx.appcompat:appcompat:1.3.1'

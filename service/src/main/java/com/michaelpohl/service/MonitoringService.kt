@@ -5,69 +5,29 @@ import android.content.Intent
 import android.media.session.MediaSession
 import android.os.*
 import androidx.appcompat.app.AppCompatActivity
-import com.michaelpohl.shared.PlayerState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.*
 
-class PlayerService : Service() {
+class MonitoringService : Service() {
 
-    private val sessionCallback = SessionCallback()
-    private val playerServiceBinder = ServiceBinder()
+    private val binder = ServiceBinder()
     private val notificationHandler = NotificationHandler()
-    private val focusHandler = AudioFocusHandler({ onAudioFocusGained() }, { onAudioFocusLost() })
     private lateinit var session: MediaSession
 
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
 
-    var activityClass: Class<out AppCompatActivity>? = null
+    var activityClass: Class<out Activity>? = null
     var serviceState = ServiceState.STOPPED
-    private fun startAudioFocus() {
-        focusHandler.requestAudioFocus(this)
-    }
-
-    private fun onAudioFocusGained() {
-        if (playerServiceBinder.getState() == PlayerState.PAUSED) {
-            CoroutineScope(Dispatchers.Default).launch {
-                playerServiceBinder.play() // play if it was paused
-            }
-        }
-    }
-
-    private fun onAudioFocusLost() {
-        CoroutineScope(Dispatchers.Default).launch {
-            with(playerServiceBinder) {
-                if (this.getState() == PlayerState.PLAYING) {
-                    this.pause() // pause player
-                } else {
-                    this@PlayerService.stop() // stop service
-                }
-            }
-        }
-    }
-
     fun start() {
-        if (serviceState != ServiceState.RUNNING) startService(Intent(applicationContext, PlayerService::class.java))
+        if (serviceState != ServiceState.RUNNING) startService(Intent(applicationContext, MonitoringService::class.java))
         serviceState = ServiceState.RUNNING
-        startAudioFocus()
     }
 
     override fun onCreate() {
         Timber.d("Service created")
         super.onCreate()
-        createMediaSession()
-        setupThread()
-    }
-
-    private fun createMediaSession() {
-        session = MediaSession(this, TAG).apply {
-            setCallback(sessionCallback) // TODO maybe separate later into a separate session class
-        }
-        session.isActive = true
-        playerServiceBinder.session = session
+//        setupThread()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -88,15 +48,15 @@ class PlayerService : Service() {
         }
     }
 
-    private fun setupThread() {
-        val handlerThread = HandlerThread(TAG)
-        handlerThread.start()
-        serviceHandler = Handler(handlerThread.looper)
-    }
+//    private fun setupThread() {
+//        val handlerThread = HandlerThread(TAG)
+//        handlerThread.start()
+//        serviceHandler = Handler(handlerThread.looper)
+//    }
 
     override fun onBind(intent: Intent): IBinder {
         stopForeground(true)
-        return playerServiceBinder
+        return binder
     }
 
     override fun onRebind(intent: Intent) {
@@ -109,17 +69,16 @@ class PlayerService : Service() {
         Timber.d("onUnbind")
 
         // if we're not playing, no need to go foreground
-        Timber.d("State: ${playerServiceBinder.getState()}")
 
         // if we don't know the activity class yet, we can't properly set up the service and notification
         // and therefore we shouldn't do anything
         activityClass?.let {
-            if (playerServiceBinder.getState() == PlayerState.PLAYING) {
-                setupNotification()
-                startForeground(NOTIFICATION_ID, notificationHandler.buildNotification(this, activityClass!!))
-            }
+            setupNotification()
+            startForeground(NOTIFICATION_ID, notificationHandler.buildNotification(this, activityClass!!))
+
             return true
-        } ?: Timber.w("No activity class found!")
+        }
+            ?: Timber.w("No activity class found!")
         return false
     }
 
@@ -138,24 +97,24 @@ class PlayerService : Service() {
     // if the user wants to end the service from the notification, this gets executed
     private fun handleNotificationStopClicked(intent: Intent?) {
         if (intent?.getBooleanExtra(DID_START_FROM_NOTIFICATION, false) == true) {
-            CoroutineScope(Dispatchers.Default).launch {
-                playerServiceBinder.stop()
-            }
+//            CoroutineScope(Dispatchers.Default).launch {
+//                binder.stop()
+//            }
         }
     }
 
     // TODO let's see if this is the smartest way...
-    inner class ServiceBinder : PlayerServiceBinder() {
+    inner class ServiceBinder : MonitoringServiceBinder() {
 
-        fun getService(): PlayerService {
-            return this@PlayerService
+        fun getService(): MonitoringService {
+            return this@MonitoringService
         }
     }
 
     companion object {
 
         // TODO check which places these should go to
-        private val TAG = PlayerService::class.java.simpleName
+        private val TAG = MonitoringService::class.java.simpleName
         const val NOTIFICATION_CHANNEL_ID = "loopy_channel"
         private const val NOTIFICATION_ID = 56479
         const val DID_START_FROM_NOTIFICATION = "started_from_notification"
