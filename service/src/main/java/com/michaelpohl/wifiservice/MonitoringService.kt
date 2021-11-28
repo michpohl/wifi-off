@@ -11,6 +11,7 @@ import android.telephony.TelephonyManager
 import android.telephony.TelephonyManager.CellInfoCallback
 import androidx.annotation.RequiresApi
 import com.michaelpohl.wifiservice.looper.MonitoringLooper
+import com.michaelpohl.wifiservice.repository.CellInfoRepository
 import com.michaelpohl.wifiservice.repository.WifiRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,12 +30,11 @@ class MonitoringService : Service() {
     private val notificationHandler = NotificationHandler()
 
     private val wifiRepo = WifiRepository()
+    private val cellRepo = CellInfoRepository()
 
     private lateinit var session: MediaSession
 
     private lateinit var looper : MonitoringLooper
-
-    private lateinit var telephonyManager: TelephonyManager
 
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
@@ -55,8 +55,7 @@ class MonitoringService : Service() {
         Timber.d("Service created")
         super.onCreate()
 //        setupThread()
-        looper = MonitoringLooper(wifiRepo) { Timber.d("State changed: $it") }
-        telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        looper = MonitoringLooper(wifiRepo, cellRepo) { Timber.d("State changed: $it") }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -67,53 +66,6 @@ class MonitoringService : Service() {
             looper.loop()
         }
         return START_NOT_STICKY
-    }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    @SuppressLint("MissingPermission")
-    private fun testCellTowerInfo() {
-        Timber.d("TestCellTowerInfo")
-
-        try {
-            val arrayCommand = "su -c dumpsys telephony.registry | grep \"mCi=\" "
-            val process = Runtime.getRuntime().exec("su -c dumpsys telephony.registry | grep \"mCi=\"")
-            val processOutput = BufferedReader(InputStreamReader(process.inputStream)).readText()
-            val processError = BufferedReader(InputStreamReader(process.errorStream)).readText()
-            Timber.d("output: $processOutput")
-//            val runner = CommandRunner()
-//            val result = runner.run(arrayCommand)
-       Timber.d("result: $processOutput")
-        } catch (e: IOException) {
-            Timber.e(e)
-        }
-    }
-
-    fun runAsRoot(commands: List<String>) {
-        val p = Runtime.getRuntime().exec("su");
-        val os = DataOutputStream(p.outputStream);
-        val bufferedReader = BufferedReader(InputStreamReader(p.inputStream))
-        val bufferedReader2 = BufferedReader(InputStreamReader(p.errorStream))
-
-        val string = bufferedReader.readText()
-
-        commands.forEach {
-            os.writeBytes(it + "\n");
-        }
-        os.writeBytes("exit\n");
-        Timber.d("output: ${string}")
-        Timber.d("output: ${bufferedReader2.readText()}")
-        os.flush();
-    }
-
-    private val callback = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        object : CellInfoCallback() {
-            override fun onCellInfo(cellInfo: MutableList<CellInfo>) {
-                Timber.d("CellInfo")
-                Timber.d("$cellInfo")
-            }
-        }
-    } else {
-        TODO("VERSION.SDK_INT < Q")
     }
 
     private fun setupNotification() {
