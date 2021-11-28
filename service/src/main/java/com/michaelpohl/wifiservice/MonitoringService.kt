@@ -1,4 +1,4 @@
-package com.michaelpohl.service
+package com.michaelpohl.wifiservice
 
 import android.annotation.SuppressLint
 import android.app.*
@@ -10,6 +10,12 @@ import android.telephony.CellInfo
 import android.telephony.TelephonyManager
 import android.telephony.TelephonyManager.CellInfoCallback
 import androidx.annotation.RequiresApi
+import com.michaelpohl.wifiservice.looper.MonitoringLooper
+import com.michaelpohl.wifiservice.repository.WifiRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.BufferedReader
 import java.io.DataOutputStream
@@ -21,7 +27,12 @@ class MonitoringService : Service() {
 
     private val binder = ServiceBinder()
     private val notificationHandler = NotificationHandler()
+
+    private val wifiRepo = WifiRepository()
+
     private lateinit var session: MediaSession
+
+    private lateinit var looper : MonitoringLooper
 
     private lateinit var telephonyManager: TelephonyManager
 
@@ -29,35 +40,33 @@ class MonitoringService : Service() {
     private lateinit var serviceHandler: Handler
 
     var activityClass: Class<out Activity>? = null
-    var serviceState = com.michaelpohl.service.ServiceState.STOPPED
+    var serviceState = ServiceState.STOPPED
     fun start() {
-        if (serviceState != com.michaelpohl.service.ServiceState.RUNNING) startService(
+        if (serviceState != ServiceState.RUNNING) startService(
             Intent(
                 applicationContext,
                 MonitoringService::class.java
             )
         )
-        serviceState = com.michaelpohl.service.ServiceState.RUNNING
+        serviceState = ServiceState.RUNNING
     }
 
     override fun onCreate() {
         Timber.d("Service created")
         super.onCreate()
 //        setupThread()
+        looper = MonitoringLooper(wifiRepo) { Timber.d("State changed: $it") }
         telephonyManager = getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Timber.d("Service started")
         handleNotificationStopClicked(intent)
-//        CoroutineScope(Dispatchers.Main).launch {
-        testCellTowerInfo()
-//        }
+        CoroutineScope(Dispatchers.Main).launch {
+//        testCellTowerInfo()
+            looper.loop()
+        }
         return START_NOT_STICKY
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun getCellTowerInfo() {
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -66,15 +75,14 @@ class MonitoringService : Service() {
         Timber.d("TestCellTowerInfo")
 
         try {
-            val arrayCommand = arrayOf("su", "-c", "dumpsys", "telephony.registry", "|", "grep", "\"mCi=\"")
-
-            val process = Runtime.getRuntime().exec(arrayCommand)
-
+            val arrayCommand = "su -c dumpsys telephony.registry | grep \"mCi=\" "
+            val process = Runtime.getRuntime().exec("su -c dumpsys telephony.registry | grep \"mCi=\"")
             val processOutput = BufferedReader(InputStreamReader(process.inputStream)).readText()
             val processError = BufferedReader(InputStreamReader(process.errorStream)).readText()
-
             Timber.d("output: $processOutput")
-            if (processError.isNotEmpty()) Timber.d("error: $processError")
+//            val runner = CommandRunner()
+//            val result = runner.run(arrayCommand)
+       Timber.d("result: $processOutput")
         } catch (e: IOException) {
             Timber.e(e)
         }
@@ -156,7 +164,7 @@ class MonitoringService : Service() {
 
     private fun stop() {
         Timber.d("Service stopped")
-        serviceState = com.michaelpohl.service.ServiceState.STOPPED
+        serviceState = ServiceState.STOPPED
         stopSelf()
     }
 

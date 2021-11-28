@@ -1,4 +1,4 @@
-package com.michaelpohl.service
+package com.michaelpohl.wifiservice
 
 import org.junit.Test
 

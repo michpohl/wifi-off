@@ -11,8 +11,8 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import com.michaelpohl.service.MonitoringService
-import com.michaelpohl.service.MonitoringServiceConnection
+import com.michaelpohl.wifiservice.MonitoringService
+import com.michaelpohl.wifiservice.MonitoringServiceConnection
 import com.michaelpohl.wifitool.ui.theme.WifiToolTheme
 import timber.log.Timber
 import java.io.IOException
