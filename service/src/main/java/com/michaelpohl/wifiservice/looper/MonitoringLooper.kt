@@ -1,9 +1,7 @@
 package com.michaelpohl.wifiservice.looper
 
-import com.michaelpohl.wifiservice.ShellCommand
 import com.michaelpohl.wifiservice.repository.CellInfoRepository
 import com.michaelpohl.wifiservice.repository.WifiRepository
-import com.michaelpohl.wifiservice.runShellCommand
 import kotlinx.coroutines.delay
 import timber.log.Timber
 import java.util.*
@@ -11,19 +9,28 @@ import java.util.*
 class MonitoringLooper(
     private val wifiRepo: WifiRepository,
     private val cellInfoRepo: CellInfoRepository,
-    val onStateChanged: (State) -> Unit
+    val onStateChanged: (State) -> Unit,
 ) {
 
     private var currentState = State()
         set(value) {
+            println("new state: $value")
             field = value
             onStateChanged(value)
         }
 
+    private var shouldStop = false
     suspend fun loop() {
         val isConnected = wifiRepo.isConnectedToAnyValidSSIDs()
         Timber.d("Connected? $isConnected")
+        if (shouldStop) return
+        println("did not stop")
         if (isConnected) handleConnected() else handleDisconnected()
+    }
+
+    fun stop() {
+        println("stop")
+        shouldStop = true
     }
 
     private suspend fun handleConnected() {
@@ -40,17 +47,32 @@ class MonitoringLooper(
 
     private suspend fun handleDisconnected() {
         val now = Date().time
-        val isWifiOn = runShellCommand(ShellCommand.CHECK_WIFI_ON) == "1"
+        val isWifiOn = wifiRepo.isWifiOn()
         if (isWifiOn) {
             currentState = if (now - currentState.lastConnected > TURN_OFF_THRESHOLD_MILLIS) {
-                currentState.copy(lastChecked = now, lastConnected = 0L, isConnected = false, instruction = WifiInstruction.TURN_OFF)
+                currentState.copy(
+                    lastChecked = now,
+                    lastConnected = 0L,
+                    isConnected = false,
+                    instruction = WifiInstruction.TURN_OFF
+                )
             } else {
-                currentState.copy(lastChecked = now, lastConnected = now, isConnected = false, instruction = WifiInstruction.WAIT)
+                currentState.copy(
+                    lastChecked = now,
+                    lastConnected = now,
+                    isConnected = false,
+                    instruction = WifiInstruction.WAIT
+                )
             }
         } else {
             currentState = if (cellInfoRepo.isWithinReachOfKnownCellTowers()) {
                 if (now - currentState.firstCellSeen > TURN_ON_THRESHOLD_MILLIS) {
-                    currentState.copy(lastChecked = now, firstCellSeen = 0L, isConnected = false, instruction = WifiInstruction.TURN_ON)
+                    currentState.copy(
+                        lastChecked = now,
+                        firstCellSeen = 0L,
+                        isConnected = false,
+                        instruction = WifiInstruction.TURN_ON
+                    )
                 } else {
                     currentState.copy(
                         lastChecked = now,
@@ -60,7 +82,12 @@ class MonitoringLooper(
                     )
                 }
             } else {
-                currentState.copy(lastConnected = now, firstCellSeen = 0L, isConnected = false, instruction = WifiInstruction.WAIT)
+                currentState.copy(
+                    lastConnected = now,
+                    firstCellSeen = 0L,
+                    isConnected = false,
+                    instruction = WifiInstruction.WAIT
+                )
             }
         }
         delay(SCAN_INTERVAL_MILLIS)
@@ -78,7 +105,7 @@ class MonitoringLooper(
     // TODO change to actual values
     companion object {
 
-        const val SCAN_INTERVAL_MILLIS = (30 * 1000).toLong()
+        const val SCAN_INTERVAL_MILLIS = (1 * 10 * 1000).toLong()
         const val TURN_OFF_THRESHOLD_MILLIS = 1 * 60 * 1000
         const val TURN_ON_THRESHOLD_MILLIS = 1 * 60 * 1000
     }

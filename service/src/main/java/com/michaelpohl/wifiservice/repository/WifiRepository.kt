@@ -1,7 +1,8 @@
 package com.michaelpohl.wifiservice.repository
 
+import com.michaelpohl.wifiservice.CommandRunner.Companion.runShellCommand
+import com.michaelpohl.wifiservice.ShellCommand
 import com.michaelpohl.wifiservice.ShellCommand.Companion.CHECK_SSID_COMMAND
-import com.michaelpohl.wifiservice.runShellCommand
 
 class WifiRepository {
 
@@ -19,4 +20,7 @@ class WifiRepository {
         return result
     }
 
+    fun isWifiOn(): Boolean {
+        return runShellCommand(ShellCommand.CHECK_WIFI_ON) == "1"
+    }
 }

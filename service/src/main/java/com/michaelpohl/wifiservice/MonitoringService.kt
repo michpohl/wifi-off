@@ -4,6 +4,7 @@ import android.app.*
 import android.content.Intent
 import android.media.session.MediaSession
 import android.os.*
+import com.michaelpohl.wifiservice.CommandRunner.Companion.runShellCommand
 import com.michaelpohl.wifiservice.looper.MonitoringLooper
 import com.michaelpohl.wifiservice.looper.WifiInstruction
 import com.michaelpohl.wifiservice.repository.CellInfoRepository
@@ -73,14 +74,13 @@ class MonitoringService : Service() {
 
     private fun setupNotification() {
         notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         NotificationChannel(
             NOTIFICATION_CHANNEL_ID, "here be app name", // TODO
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
             notificationManager.createNotificationChannel(this)
         }
-//        }
+
     }
 
 //    private fun setupThread() {

@@ -1,7 +1,7 @@
 package com.michaelpohl.wifiservice.repository
 
+import com.michaelpohl.wifiservice.CommandRunner.Companion.runShellCommand
 import com.michaelpohl.wifiservice.ShellCommand.Companion.CHECK_CELL_TOWERS_COMMAND
-import com.michaelpohl.wifiservice.runShellCommand
 
 class CellInfoRepository {
 
