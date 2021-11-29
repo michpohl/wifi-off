@@ -52,7 +52,6 @@ class MonitoringService : Service() {
         Timber.d("Service started")
         handleNotificationStopClicked(intent)
         CoroutineScope(Dispatchers.Main).launch {
-//        testCellTowerInfo()
             looper.loop()
         }
         return START_NOT_STICKY
@@ -60,12 +59,15 @@ class MonitoringService : Service() {
 
     private fun onWifiStateChanged(state: MonitoringLooper.State) {
         when (state.instruction) {
-            WifiInstruction.TURN_OFF -> Timber.d("Turn off")
+            WifiInstruction.TURN_OFF -> {
+                Timber.i("No known SSIDs visible. Turning off Wifi")
+                runShellCommand(ShellCommand.TURN_WIFI_OFF)
+            }
             WifiInstruction.TURN_ON -> {
-                Timber.d("Turn on")
+                Timber.i("Connected to known cell tower. Turning on Wifi")
                 runShellCommand(ShellCommand.TURN_WIFI_ON)
             }
-            WifiInstruction.WAIT -> Timber.d("Wait")
+            WifiInstruction.WAIT -> Timber.d("No change necessary. Waiting")
         }
     }
 

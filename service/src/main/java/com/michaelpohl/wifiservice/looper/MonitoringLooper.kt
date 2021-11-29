@@ -34,7 +34,7 @@ class MonitoringLooper(
             isConnected = true,
             instruction = WifiInstruction.WAIT
         )
-        delay(SCAN_INTERVAL)
+        delay(SCAN_INTERVAL_MILLIS)
         loop()
     }
 
@@ -63,6 +63,7 @@ class MonitoringLooper(
                 currentState.copy(lastConnected = now, firstCellSeen = 0L, isConnected = false, instruction = WifiInstruction.WAIT)
             }
         }
+        delay(SCAN_INTERVAL_MILLIS)
         loop()
     }
 
@@ -77,7 +78,7 @@ class MonitoringLooper(
     // TODO change to actual values
     companion object {
 
-        const val SCAN_INTERVAL = (3 * 1000).toLong()
+        const val SCAN_INTERVAL_MILLIS = (30 * 1000).toLong()
         const val TURN_OFF_THRESHOLD_MILLIS = 1 * 60 * 1000
         const val TURN_ON_THRESHOLD_MILLIS = 1 * 60 * 1000
     }
