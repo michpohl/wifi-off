@@ -1,27 +1,17 @@
 package com.michaelpohl.wifiservice
 
-import android.annotation.SuppressLint
 import android.app.*
-import android.content.Context
 import android.content.Intent
 import android.media.session.MediaSession
 import android.os.*
-import android.telephony.CellInfo
-import android.telephony.TelephonyManager
-import android.telephony.TelephonyManager.CellInfoCallback
-import androidx.annotation.RequiresApi
 import com.michaelpohl.wifiservice.looper.MonitoringLooper
+import com.michaelpohl.wifiservice.looper.WifiInstruction
 import com.michaelpohl.wifiservice.repository.CellInfoRepository
 import com.michaelpohl.wifiservice.repository.WifiRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.io.BufferedReader
-import java.io.DataOutputStream
-import java.io.IOException
-import java.io.InputStreamReader
 import java.util.*
 
 class MonitoringService : Service() {
@@ -34,7 +24,7 @@ class MonitoringService : Service() {
 
     private lateinit var session: MediaSession
 
-    private lateinit var looper : MonitoringLooper
+    private lateinit var looper: MonitoringLooper
 
     private lateinit var notificationManager: NotificationManager
     private lateinit var serviceHandler: Handler
@@ -55,7 +45,7 @@ class MonitoringService : Service() {
         Timber.d("Service created")
         super.onCreate()
 //        setupThread()
-        looper = MonitoringLooper(wifiRepo, cellRepo) { Timber.d("State changed: $it") }
+        looper = MonitoringLooper(wifiRepo, cellRepo) { onWifiStateChanged(it) }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -68,16 +58,27 @@ class MonitoringService : Service() {
         return START_NOT_STICKY
     }
 
+    private fun onWifiStateChanged(state: MonitoringLooper.State) {
+        when (state.instruction) {
+            WifiInstruction.TURN_OFF -> Timber.d("Turn off")
+            WifiInstruction.TURN_ON -> {
+                Timber.d("Turn on")
+                runShellCommand(ShellCommand.TURN_WIFI_ON)
+            }
+            WifiInstruction.WAIT -> Timber.d("Wait")
+        }
+    }
+
     private fun setupNotification() {
         notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel(
-                NOTIFICATION_CHANNEL_ID, "here be app name", // TODO
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                notificationManager.createNotificationChannel(this)
-            }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        NotificationChannel(
+            NOTIFICATION_CHANNEL_ID, "here be app name", // TODO
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            notificationManager.createNotificationChannel(this)
         }
+//        }
     }
 
 //    private fun setupThread() {
