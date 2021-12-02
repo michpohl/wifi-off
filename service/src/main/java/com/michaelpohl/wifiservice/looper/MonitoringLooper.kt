@@ -37,7 +37,7 @@ class MonitoringLooper(
         val now = Date().time
         currentState = currentState.copy(
             lastChecked = now,
-            lastWifiOn = now,
+            lastConnected = now,
             firstCellSeen = 0,
             isWifiOn = true,
             instruction = WifiInstruction.WAIT
@@ -53,17 +53,17 @@ class MonitoringLooper(
         println("isWifiOn")
         if (isWifiOn) {
             println("wifi on")
-            currentState = if (now - currentState.lastWifiOn > TURN_OFF_THRESHOLD_MILLIS) {
+            currentState = if (now - currentState.lastConnected > TURN_OFF_THRESHOLD_MILLIS) {
                 currentState.copy(
                     lastChecked = now,
-                    lastWifiOn = 0L,
+                    lastConnected = 0L,
                     isWifiOn = false,
                     instruction = WifiInstruction.TURN_OFF
                 )
             } else {
                 currentState.copy(
                     lastChecked = now,
-                    lastWifiOn = now,
+                    lastConnected = now,
                     isWifiOn = false,
                     instruction = WifiInstruction.WAIT
                 )
@@ -105,7 +105,7 @@ class MonitoringLooper(
 
     data class State(
         val lastChecked: Long = 0L,
-        val lastWifiOn: Long = 0L,
+        val lastConnected: Long = 0L,
         val firstCellSeen: Long = 0L,
         val isWifiOn: Boolean = false,
         val instruction: WifiInstruction = WifiInstruction.WAIT
