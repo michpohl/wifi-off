@@ -37,8 +37,9 @@ class MonitoringLooper(
         val now = Date().time
         currentState = currentState.copy(
             lastChecked = now,
-            lastConnected = now,
-            isConnected = true,
+            lastWifiOn = now,
+            firstCellSeen = 0,
+            isWifiOn = true,
             instruction = WifiInstruction.WAIT
         )
         delay(SCAN_INTERVAL_MILLIS)
@@ -46,59 +47,67 @@ class MonitoringLooper(
     }
 
     private suspend fun handleDisconnected() {
+        println("handleDisconnected")
         val now = Date().time
         val isWifiOn = wifiRepo.isWifiOn()
+        println("isWifiOn")
         if (isWifiOn) {
-            currentState = if (now - currentState.lastConnected > TURN_OFF_THRESHOLD_MILLIS) {
+            println("wifi on")
+            currentState = if (now - currentState.lastWifiOn > TURN_OFF_THRESHOLD_MILLIS) {
                 currentState.copy(
                     lastChecked = now,
-                    lastConnected = 0L,
-                    isConnected = false,
+                    lastWifiOn = 0L,
+                    isWifiOn = false,
                     instruction = WifiInstruction.TURN_OFF
                 )
             } else {
                 currentState.copy(
                     lastChecked = now,
-                    lastConnected = now,
-                    isConnected = false,
+                    lastWifiOn = now,
+                    isWifiOn = false,
                     instruction = WifiInstruction.WAIT
                 )
             }
         } else {
+            println("wifi off")
             currentState = if (cellInfoRepo.isWithinReachOfKnownCellTowers()) {
+                println("within reach of cell tower, time since first seen: ${now - currentState.firstCellSeen}")
                 if (now - currentState.firstCellSeen > TURN_ON_THRESHOLD_MILLIS) {
+                    println("first")
                     currentState.copy(
                         lastChecked = now,
-                        firstCellSeen = 0L,
-                        isConnected = false,
+                        isWifiOn = false,
                         instruction = WifiInstruction.TURN_ON
                     )
                 } else {
+                    println("second")
                     currentState.copy(
                         lastChecked = now,
                         firstCellSeen = if (currentState.firstCellSeen == 0L) now else currentState.firstCellSeen,
-                        isConnected = false,
+                        isWifiOn = false,
                         instruction = WifiInstruction.WAIT
                     )
                 }
             } else {
+                println("not within reach")
                 currentState.copy(
-                    lastConnected = now,
+                    lastChecked = now,
                     firstCellSeen = 0L,
-                    isConnected = false,
+                    isWifiOn = false,
                     instruction = WifiInstruction.WAIT
                 )
             }
         }
+        println("end")
         delay(SCAN_INTERVAL_MILLIS)
         loop()
     }
 
     data class State(
         val lastChecked: Long = 0L,
-        val lastConnected: Long = 0L,
+        val lastWifiOn: Long = 0L,
         val firstCellSeen: Long = 0L,
-        val isConnected: Boolean = false,
+        val isWifiOn: Boolean = false,
         val instruction: WifiInstruction = WifiInstruction.WAIT
     )
 
