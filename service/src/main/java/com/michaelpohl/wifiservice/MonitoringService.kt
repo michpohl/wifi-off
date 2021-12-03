@@ -2,28 +2,25 @@ package com.michaelpohl.wifiservice
 
 import android.app.*
 import android.content.Intent
-import android.media.session.MediaSession
 import android.os.*
 import com.michaelpohl.wifiservice.CommandRunner.Companion.runShellCommand
+import com.michaelpohl.wifiservice.di.serviceModule
 import com.michaelpohl.wifiservice.looper.MonitoringLooper
 import com.michaelpohl.wifiservice.looper.WifiInstruction
-import com.michaelpohl.wifiservice.repository.CellInfoRepository
-import com.michaelpohl.wifiservice.repository.WifiRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
+import org.koin.core.context.loadKoinModules
+import org.koin.core.parameter.parametersOf
 import timber.log.Timber
 import java.util.*
 
-class MonitoringService : Service() {
+class MonitoringService : Service(), KoinComponent {
 
     private val binder = ServiceBinder()
     private val notificationHandler = NotificationHandler()
-
-    private val wifiRepo = WifiRepository()
-    private val cellRepo = CellInfoRepository()
-
-    private lateinit var session: MediaSession
 
     private lateinit var looper: MonitoringLooper
 
@@ -33,6 +30,7 @@ class MonitoringService : Service() {
     var activityClass: Class<out Activity>? = null
     var serviceState = ServiceState.STOPPED
     fun start() {
+        initKoinModule()
         if (serviceState != ServiceState.RUNNING) startService(
             Intent(
                 applicationContext,
@@ -42,11 +40,15 @@ class MonitoringService : Service() {
         serviceState = ServiceState.RUNNING
     }
 
+    private fun initKoinModule() {
+        loadKoinModules(serviceModule)
+        looper = get { parametersOf({ state: MonitoringLooper.State -> onWifiStateChanged(state) }) }
+    }
+
     override fun onCreate() {
         Timber.d("Service created")
         super.onCreate()
 //        setupThread()
-        looper = MonitoringLooper(wifiRepo, cellRepo) { onWifiStateChanged(it) }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -80,7 +82,6 @@ class MonitoringService : Service() {
         ).apply {
             notificationManager.createNotificationChannel(this)
         }
-
     }
 
 //    private fun setupThread() {
@@ -103,14 +104,11 @@ class MonitoringService : Service() {
     override fun onUnbind(intent: Intent): Boolean {
         Timber.d("onUnbind")
 
-        // if we're not playing, no need to go foreground
-
         // if we don't know the activity class yet, we can't properly set up the service and notification
         // and therefore we shouldn't do anything
         activityClass?.let {
             setupNotification()
             startForeground(NOTIFICATION_ID, notificationHandler.buildNotification(this, activityClass!!))
-
             return true
         }
             ?: Timber.w("No activity class found!")
@@ -125,7 +123,6 @@ class MonitoringService : Service() {
 
     override fun onDestroy() {
         serviceHandler.removeCallbacksAndMessages(null)
-        session.isActive = false
         super.onDestroy()
     }
 
