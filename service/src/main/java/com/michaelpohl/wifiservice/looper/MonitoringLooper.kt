@@ -72,7 +72,7 @@ class MonitoringLooper(
             println("wifi off")
             currentState = if (cellInfoRepo.isWithinReachOfKnownCellTowers()) {
                 println("within reach of cell tower, time since first seen: ${now - currentState.firstCellSeen}")
-                if (now - currentState.firstCellSeen > TURN_ON_THRESHOLD_MILLIS) {
+                if (currentState.firstCellSeen != 0L && now - currentState.firstCellSeen > TURN_ON_THRESHOLD_MILLIS) {
                     println("first")
                     currentState.copy(
                         lastChecked = now,

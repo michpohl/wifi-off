@@ -1,6 +1,5 @@
 package com.michaelpohl.wifiservice
 
-import timber.log.Timber
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
@@ -12,7 +11,7 @@ class CommandRunner {
             val process = Runtime.getRuntime().exec(splitCommand)
             val processOutput = BufferedReader(InputStreamReader(process.inputStream)).readText()
             val processError = BufferedReader(InputStreamReader(process.errorStream)).readText()
-            Timber.d("command: $command\noutput: $processOutput")
+//            Timber.d("command: $command\noutput: $processOutput")
             return when {
                 processOutput.isNotEmpty() -> processOutput
                 processError.isNotEmpty() -> processError
