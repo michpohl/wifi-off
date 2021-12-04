@@ -2,6 +2,7 @@ package com.michaelpohl.wifitool
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.michaelpohl.wifiservice.MonitoringService
 import com.michaelpohl.wifiservice.MonitoringServiceConnection
+import com.michaelpohl.wifitool.common.util.CallbackTimberTree
 import com.michaelpohl.wifitool.ui.theme.WifiToolTheme
 import timber.log.Timber
 import java.io.IOException
@@ -20,13 +22,12 @@ import java.io.IOException
 class MainActivity : ComponentActivity() {
 
     private val serviceConnection = MonitoringServiceConnection(this::class.java).apply {
-        onServiceConnectedListener = { Timber.d("Connected!")}
+        onServiceConnectedListener = { Timber.d("Connected!") }
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
-        Timber.plant(Timber.DebugTree())
         super.onCreate(savedInstanceState)
+        initTimber()
         try {
             Runtime.getRuntime().exec("su")
         } catch (e: IOException) {
@@ -52,6 +53,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun initTimber() {
+        if (Timber.forest().size < 1) {
+            Timber.plant(CallbackTimberTree { Toast.makeText(this, it, Toast.LENGTH_SHORT).show() })
+        }
+        Timber.d("Timber is on")
+    }
+
     override fun onResume() {
         super.onResume()
         Timber.d("onResume")
@@ -71,35 +79,6 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         Timber.d("onDestroy")
         super.onDestroy()
-        stopService(Intent(this@MainActivity, MonitoringService::class.java))
     }
 
-    private fun turnWifiOff() {
-        try {
-            Runtime.getRuntime().exec("su -c svc wifi disable")
-        } catch (e: IOException) {
-
-        }
-    }
-
-    private fun turnWifiOn() {
-        try {
-            Runtime.getRuntime().exec("su -c svc wifi enable")
-        } catch (e: IOException) {
-
-        }
-    }
-}
-
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    WifiToolTheme {
-        Greeting("Android")
-    }
 }
