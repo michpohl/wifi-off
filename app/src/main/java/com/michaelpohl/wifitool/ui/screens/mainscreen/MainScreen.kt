@@ -38,8 +38,12 @@ fun MainScreen() {
             .padding(start = 16.dp, top = 16.dp, end = 16.dp)
     ) {
         Row() {
-            Text(text = "Current connected Wifi:")
+            Text(text = "Current connected Wifi: ")
             Text(text = state.currentConnectedWifi?.ssid ?: "unknown")
+        }
+        Row() {
+            Text(text = "Current close CellTower ID: ")
+            Text(text = state.currentConnectedWifi?.cellID ?: "unknown")
         }
            }
 }

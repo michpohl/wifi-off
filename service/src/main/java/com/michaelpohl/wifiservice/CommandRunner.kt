@@ -1,19 +1,37 @@
 package com.michaelpohl.wifiservice
 
 import com.michaelpohl.wifiservice.model.WifiData
+import timber.log.Timber
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 class CommandRunner {
 
-    fun getCurrentConnectedWifi() : WifiData? {
+    fun getCurrentConnectedWifi(): WifiData? {
         // TODO implement
         // get ssid, if ssid exists, get celltowerid
-        return null
+        val ssidString = runShellCommand(ShellCommand.CHECK_SSID_COMMAND)
+        val splitString = ssidString?.split("\"") ?: return null
+        // The regex works, but we don't need it at this point
+        // Timber.d("ssid regex: ${ssidRegex.find(ssidString ?: "")?.groups?.get(0)?.value}")
+
+        val cellTowerId = runShellCommand(ShellCommand.CHECK_CELL_TOWERS_COMMAND)
+        return cellTowerId?.let {
+            var idMatch = ""
+            cellTowerRegex.find(cellTowerId)?.groups?.get(0)?.apply {
+                this.value.forEach { if (it.isDigit()) idMatch = idMatch.plus(it) }
+            }
+
+            Timber.d("cellid: $cellTowerId")
+            Timber.d("regex: $idMatch")
+            WifiData(splitString[1], idMatch)
+        }
     }
 
     companion object {
 
+        private val ssidRegex = """=".*",""".toRegex()
+        private val cellTowerRegex = """mCi=[0-9]*""".toRegex()
         fun runShellCommand(command: String): String? {
             val splitCommand: Array<String> = command.split(" ").toTypedArray()
             val process = Runtime.getRuntime().exec(splitCommand)
