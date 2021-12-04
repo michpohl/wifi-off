@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.michaelpohl.wifiservice.MonitoringService
 import com.michaelpohl.wifiservice.MonitoringServiceConnection
 import com.michaelpohl.wifitool.common.util.CallbackTimberTree
+import com.michaelpohl.wifitool.ui.screens.mainscreen.MainScreen
 import com.michaelpohl.wifitool.ui.theme.WifiToolTheme
 import timber.log.Timber
 import java.io.IOException
@@ -38,16 +39,7 @@ class MainActivity : ComponentActivity() {
             WifiToolTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    Column() {
-
-                        Button(onClick = { turnWifiOff() }) {
-                            Text("Off")
-                        }
-                        Button(onClick = { turnWifiOn() }) {
-                            Text("On")
-
-                        }
-                    }
+                   MainScreen()
                 }
             }
         }

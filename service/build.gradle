@@ -49,9 +49,13 @@ dependencies {
     api "io.insert-koin:koin-androidx-compose:3.0.1"
 
     // Moshi JSON handling
-    implementation "com.squareup.moshi:moshi:1.12.0"
-    implementation "com.squareup.moshi:moshi-adapters:1.12.0"
-    implementation "dev.zacsweers.moshix:moshi-sealed-runtime:0.14.1"
+    api "com.squareup.moshi:moshi:1.12.0"
+    api "com.squareup.moshi:moshi-adapters:1.12.0"
+    api "dev.zacsweers.moshix:moshi-sealed-runtime:0.14.1"
+
+    // Moshi annotation processing
+    kapt "com.squareup.moshi:moshi-kotlin-codegen:1.12.0"
+    kapt "dev.zacsweers.moshix:moshi-sealed-codegen:0.14.1"
 
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.media:media:1.4.3'

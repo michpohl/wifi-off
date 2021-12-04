@@ -1,9 +1,17 @@
 package com.michaelpohl.wifiservice
 
+import com.michaelpohl.wifiservice.model.WifiData
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 class CommandRunner {
+
+    fun getCurrentConnectedWifi() : WifiData? {
+        // TODO implement
+        // get ssid, if ssid exists, get celltowerid
+        return null
+    }
+
     companion object {
 
         fun runShellCommand(command: String): String? {
