@@ -1,11 +1,11 @@
-package com.michaelpohl.wifiservice.repository
+package com.michaelpohl.wifiservice.storage
 
 import android.content.SharedPreferences
 import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifiservice.model.WifiList
 import com.squareup.moshi.Moshi
 
-class StorageRepository(private val sharedPreferences: SharedPreferences, moshi: Moshi) {
+class LocalStorage(private val sharedPreferences: SharedPreferences, moshi: Moshi) {
 
     private val adapter = moshi.adapter(WifiList::class.java)
 

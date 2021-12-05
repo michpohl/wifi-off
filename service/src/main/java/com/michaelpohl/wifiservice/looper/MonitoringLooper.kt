@@ -1,16 +1,14 @@
 package com.michaelpohl.wifiservice.looper
 
-import com.michaelpohl.wifiservice.repository.CellInfoRepository
-import com.michaelpohl.wifiservice.repository.StorageRepository
-import com.michaelpohl.wifiservice.repository.WifiRepository
+import com.michaelpohl.wifiservice.CommandRunner
+import com.michaelpohl.wifiservice.storage.LocalStorage
 import kotlinx.coroutines.delay
 import timber.log.Timber
 import java.util.*
 
 class MonitoringLooper(
-    private val wifiRepo: WifiRepository,
-    private val cellInfoRepo: CellInfoRepository,
-    private val storageRepo: StorageRepository,
+    private val commandRunner: CommandRunner,
+    private val localStorageRepo: LocalStorage,
     val onStateChanged: (State) -> Unit,
 ) {
 
@@ -23,7 +21,7 @@ class MonitoringLooper(
 
     private var shouldStop = false
     suspend fun loop() {
-        val isConnected = wifiRepo.isConnectedToAnyValidSSIDs(storageRepo.savedKnownWifis.wifis.map { it.ssid })
+        val isConnected = commandRunner.isConnectedToAnyValidSSIDs(localStorageRepo.savedKnownWifis.wifis.map { it.ssid })
         Timber.d("Connected? $isConnected")
         if (shouldStop) return
         println("did not stop")
@@ -51,7 +49,7 @@ class MonitoringLooper(
     private suspend fun handleDisconnected() {
         println("handleDisconnected")
         val now = Date().time
-        val isWifiOn = wifiRepo.isWifiOn()
+        val isWifiOn = commandRunner.isWifiOn()
         println("isWifiOn")
         if (isWifiOn) {
             println("wifi on")
@@ -72,7 +70,7 @@ class MonitoringLooper(
             }
         } else {
             println("wifi off")
-            currentState = if (cellInfoRepo.isWithinReachOfKnownCellTowers(storageRepo.savedKnownWifis.wifis.map { it.cellID })) {
+            currentState = if (commandRunner.isWithinReachOfKnownCellTowers(localStorageRepo.savedKnownWifis.wifis.map { it.cellID })) {
                 println("within reach of cell tower, time since first seen: ${now - currentState.firstCellSeen}")
                 if (currentState.firstCellSeen != 0L && now - currentState.firstCellSeen > TURN_ON_THRESHOLD_MILLIS) {
                     println("first")

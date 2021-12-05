@@ -32,11 +32,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         initTimber()
-        try {
-            Runtime.getRuntime().exec("su")
-        } catch (e: IOException) {
-
-        }
 
         setContent {
             WifiToolTheme {

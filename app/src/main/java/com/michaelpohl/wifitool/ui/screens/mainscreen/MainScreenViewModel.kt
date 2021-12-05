@@ -3,21 +3,21 @@ package com.michaelpohl.wifitool.ui.screens.mainscreen
 import com.michaelpohl.wifiservice.CommandRunner
 import com.michaelpohl.wifiservice.looper.MonitoringLooper
 import com.michaelpohl.wifiservice.model.WifiData
-import com.michaelpohl.wifiservice.repository.StorageRepository
+import com.michaelpohl.wifiservice.storage.LocalStorage
 import com.michaelpohl.wifitool.ui.common.UIStateFlowViewModel
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 class MainScreenViewModel : UIStateFlowViewModel<MainScreenState>(), KoinComponent {
 
-    private val storage: StorageRepository by inject()
+    private val localStorage: LocalStorage by inject()
     private val commandRunner: CommandRunner by inject()
     override fun initUIState(): MainScreenState {
         return MainScreenState()
     }
 
     fun getSavedWifis() {
-        updateState(currentState.copy(storage.savedKnownWifis))
+        updateState(currentState.copy(localStorage.savedKnownWifis))
     }
 
     fun getCurrentConnectedWifi() {
@@ -25,11 +25,11 @@ class MainScreenViewModel : UIStateFlowViewModel<MainScreenState>(), KoinCompone
     }
 
     fun saveWifi(wifi: WifiData) {
-        storage.saveWifi(wifi)
+        localStorage.saveWifi(wifi)
     }
 
     fun deleteWifi(wifi: WifiData) {
-        storage.deleteWifi(wifi)
+        localStorage.deleteWifi(wifi)
     }
     fun onMonitoringStateChanged(state: MonitoringLooper.State) {
         getCurrentConnectedWifi()

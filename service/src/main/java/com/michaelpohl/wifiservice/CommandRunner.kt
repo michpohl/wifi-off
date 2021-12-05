@@ -29,6 +29,22 @@ class CommandRunner {
         }
     }
 
+    fun isWithinReachOfKnownCellTowers(cellIDs : List<String>): Boolean {
+        var result = false
+        cellIDs.forEach { if (runShellCommand(ShellCommand.CHECK_CELL_TOWERS_COMMAND)?.contains(it) == true) result = true }
+        return result
+    }
+
+    fun isConnectedToAnyValidSSIDs(ssids: List<String>): Boolean {
+        var result = false
+        ssids.forEach { if (runShellCommand(ShellCommand.CHECK_SSID_COMMAND)?.contains(it) == true) result = true }
+        return result
+    }
+
+    fun isWifiOn(): Boolean {
+        return runShellCommand(ShellCommand.CHECK_WIFI_ON) == "1"
+    }
+
     companion object {
 
         private val ssidRegex = """=".*",""".toRegex()
