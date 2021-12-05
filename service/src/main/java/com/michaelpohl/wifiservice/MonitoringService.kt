@@ -29,6 +29,8 @@ class MonitoringService : Service(), KoinComponent {
 
     var activityClass: Class<out Activity>? = null
     var serviceState = ServiceState.STOPPED
+    var wifiStateListener: ((MonitoringLooper.State) -> Unit)? = null
+
     fun start() {
         initKoinModule()
         if (serviceState != ServiceState.RUNNING) startService(
@@ -72,6 +74,7 @@ class MonitoringService : Service(), KoinComponent {
             }
             WifiInstruction.WAIT -> Timber.d("No change necessary. Waiting")
         }
+        wifiStateListener?.invoke(state)
     }
 
     private fun setupNotification() {

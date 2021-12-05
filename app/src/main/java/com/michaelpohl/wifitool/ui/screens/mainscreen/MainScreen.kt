@@ -12,11 +12,9 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
-fun MainScreen() {
-    val viewModel: MainScreenViewModel = viewModel()
+fun MainScreen(viewModel: MainScreenViewModel) {
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val flow = viewModel.stateFlow

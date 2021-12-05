@@ -11,7 +11,8 @@ class CommandRunner {
         // TODO implement
         // get ssid, if ssid exists, get celltowerid
         val ssidString = runShellCommand(ShellCommand.CHECK_SSID_COMMAND)
-        val splitString = ssidString?.split("\"") ?: return null
+        val splitString = ssidString?.split("\"")
+        if (splitString == null || splitString.size < 2) return null
         // The regex works, but we don't need it at this point
         // Timber.d("ssid regex: ${ssidRegex.find(ssidString ?: "")?.groups?.get(0)?.value}")
 

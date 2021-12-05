@@ -5,17 +5,15 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Column
-import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.michaelpohl.wifiservice.MonitoringService
 import com.michaelpohl.wifiservice.MonitoringServiceConnection
+import com.michaelpohl.wifiservice.looper.MonitoringLooper
 import com.michaelpohl.wifitool.common.util.CallbackTimberTree
 import com.michaelpohl.wifitool.ui.screens.mainscreen.MainScreen
+import com.michaelpohl.wifitool.ui.screens.mainscreen.MainScreenViewModel
 import com.michaelpohl.wifitool.ui.theme.WifiToolTheme
 import timber.log.Timber
 import java.io.IOException
@@ -23,8 +21,13 @@ import java.io.IOException
 class MainActivity : ComponentActivity() {
 
     private val serviceConnection = MonitoringServiceConnection(this::class.java).apply {
-        onServiceConnectedListener = { Timber.d("Connected!") }
+        onServiceConnectedListener = {
+            Timber.d("Connected!")
+            it.getService().wifiStateListener = { state -> onMonitoringStateChanged(state)}
+        }
     }
+
+    private lateinit var viewModel: MainScreenViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,10 +42,15 @@ class MainActivity : ComponentActivity() {
             WifiToolTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                   MainScreen()
+                    viewModel = viewModel()
+                    MainScreen(viewModel)
                 }
             }
         }
+    }
+
+    private fun onMonitoringStateChanged(state : MonitoringLooper.State) {
+        viewModel.onMonitoringStateChanged(state)
     }
 
     private fun initTimber() {

@@ -1,6 +1,7 @@
 package com.michaelpohl.wifitool.ui.screens.mainscreen
 
 import com.michaelpohl.wifiservice.CommandRunner
+import com.michaelpohl.wifiservice.looper.MonitoringLooper
 import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifiservice.repository.StorageRepository
 import com.michaelpohl.wifitool.ui.common.UIStateFlowViewModel
@@ -29,5 +30,8 @@ class MainScreenViewModel : UIStateFlowViewModel<MainScreenState>(), KoinCompone
 
     fun deleteWifi(wifi: WifiData) {
         storage.deleteWifi(wifi)
+    }
+    fun onMonitoringStateChanged(state: MonitoringLooper.State) {
+        getCurrentConnectedWifi()
     }
 }

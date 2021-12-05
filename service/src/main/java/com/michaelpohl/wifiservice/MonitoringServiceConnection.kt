@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.ComponentName
 import android.content.ServiceConnection
 import android.os.IBinder
+import com.michaelpohl.wifiservice.looper.MonitoringLooper
 import timber.log.Timber
 
 class MonitoringServiceConnection(private val activityClass: Class<out Activity>) : ServiceConnection {
@@ -15,9 +16,18 @@ class MonitoringServiceConnection(private val activityClass: Class<out Activity>
     var monitoringService: MonitoringService? = null
         private set
 
-    fun requestInterface(): MonitoringService.ServiceBinder? {
-        return monitoringInterface
-    }
+    var wifiStateListener: ((MonitoringLooper.State) -> Unit)? = null
+        set(value) {
+            field = value
+            if (value == null) return
+            monitoringService?.let {
+                it.wifiStateListener = value
+            } ?: Timber.w("Could not set listener because the service was not present. Wait until service is set")
+        }
+
+//    fun requestInterface(): MonitoringService.ServiceBinder? {
+//        return monitoringInterface
+//    }
 
     override fun onServiceConnected(name: ComponentName, service: IBinder) {
         Timber.d("Service connected")
