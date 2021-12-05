@@ -5,10 +5,18 @@ import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifiservice.model.WifiList
 import com.squareup.moshi.Moshi
 
-class PersistenceRepository(private val sharedPreferences: SharedPreferences, moshi: Moshi) {
+class StorageRepository(private val sharedPreferences: SharedPreferences, moshi: Moshi) {
 
     private val adapter = moshi.adapter(WifiList::class.java)
-    fun getSavedWifis(): WifiList {
+
+    var savedKnownWifis = WifiList(listOf())
+    private set
+
+    init {
+        savedKnownWifis = getSavedWifis()
+    }
+
+    private fun getSavedWifis(): WifiList {
         val wifiJson = sharedPreferences.getString(WIFIS_TAG, null)
         return wifiJson?.let {
             adapter.fromJson(wifiJson)
@@ -28,6 +36,7 @@ class PersistenceRepository(private val sharedPreferences: SharedPreferences, mo
             putString(WIFIS_TAG, adapter.toJson(WifiList(knownWifis)))
             apply()
         }
+        savedKnownWifis = WifiList(knownWifis)
     }
 
     fun deleteWifi(wifi: WifiData) {
@@ -42,6 +51,7 @@ class PersistenceRepository(private val sharedPreferences: SharedPreferences, mo
             putString(WIFIS_TAG, adapter.toJson(WifiList(knownWifis)))
             apply()
         }
+        savedKnownWifis = WifiList(knownWifis)
     }
 
     companion object {

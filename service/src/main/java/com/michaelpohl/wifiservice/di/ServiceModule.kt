@@ -8,5 +8,5 @@ import org.koin.dsl.module
 val serviceModule = module {
     single { WifiRepository() }
     single { CellInfoRepository() }
-    single { (onStateChanged: (MonitoringLooper.State) -> Unit) -> MonitoringLooper(get(), get(), onStateChanged) }
+    single { (onStateChanged: (MonitoringLooper.State) -> Unit) -> MonitoringLooper(get(), get(), get(), onStateChanged) }
 }

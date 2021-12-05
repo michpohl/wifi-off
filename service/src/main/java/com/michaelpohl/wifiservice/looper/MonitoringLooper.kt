@@ -1,6 +1,7 @@
 package com.michaelpohl.wifiservice.looper
 
 import com.michaelpohl.wifiservice.repository.CellInfoRepository
+import com.michaelpohl.wifiservice.repository.StorageRepository
 import com.michaelpohl.wifiservice.repository.WifiRepository
 import kotlinx.coroutines.delay
 import timber.log.Timber
@@ -9,6 +10,7 @@ import java.util.*
 class MonitoringLooper(
     private val wifiRepo: WifiRepository,
     private val cellInfoRepo: CellInfoRepository,
+    private val storageRepo: StorageRepository,
     val onStateChanged: (State) -> Unit,
 ) {
 
@@ -21,7 +23,7 @@ class MonitoringLooper(
 
     private var shouldStop = false
     suspend fun loop() {
-        val isConnected = wifiRepo.isConnectedToAnyValidSSIDs()
+        val isConnected = wifiRepo.isConnectedToAnyValidSSIDs(storageRepo.savedKnownWifis.wifis.map { it.ssid })
         Timber.d("Connected? $isConnected")
         if (shouldStop) return
         println("did not stop")
@@ -70,7 +72,7 @@ class MonitoringLooper(
             }
         } else {
             println("wifi off")
-            currentState = if (cellInfoRepo.isWithinReachOfKnownCellTowers()) {
+            currentState = if (cellInfoRepo.isWithinReachOfKnownCellTowers(storageRepo.savedKnownWifis.wifis.map { it.cellID })) {
                 println("within reach of cell tower, time since first seen: ${now - currentState.firstCellSeen}")
                 if (currentState.firstCellSeen != 0L && now - currentState.firstCellSeen > TURN_ON_THRESHOLD_MILLIS) {
                     println("first")
