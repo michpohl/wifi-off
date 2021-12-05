@@ -6,6 +6,8 @@ import com.michaelpohl.wifiservice.looper.MonitoringLooper.Companion.SCAN_INTERV
 import com.michaelpohl.wifiservice.looper.MonitoringLooper.Companion.TURN_OFF_THRESHOLD_MILLIS
 import com.michaelpohl.wifiservice.looper.MonitoringLooper.Companion.TURN_ON_THRESHOLD_MILLIS
 import com.michaelpohl.wifiservice.looper.MonitoringLooper.State
+import com.michaelpohl.wifiservice.model.WifiData
+import com.michaelpohl.wifiservice.model.WifiList
 import com.michaelpohl.wifiservice.storage.LocalStorage
 import io.mockk.clearAllMocks
 import io.mockk.every
@@ -51,7 +53,9 @@ class MonitoringLooperTest : TestCase() {
     fun `if connected to wifi, a new state with proper time stamps  and instruction to WAIT is generated`() =
         runBlockingTest {
             // given
-            every { commandRunner.isConnectedToAnyValidSSIDs() } returns true
+            val dummyWifiList = WifiList(listOf(WifiData("ssid1", "cellId1"), WifiData("ssid2", "cellId2")))
+            every { storage.savedKnownWifis } returns dummyWifiList
+            every { commandRunner.isConnectedToAnyValidSSIDs(dummyWifiList.wifis.map { it.ssid }) } returns true
             every { commandRunner.isWifiOn() } returns true
 
             // when
@@ -72,7 +76,9 @@ class MonitoringLooperTest : TestCase() {
     @Test
     fun `if wifi is on, but no valid SSID around, change instruction to WAIT if threshold is not met`() = runBlockingTest {
         // given
-        every { commandRunner.isConnectedToAnyValidSSIDs() } returns true
+        val dummyWifiList = WifiList(listOf(WifiData("ssid1", "cellId1"), WifiData("ssid2", "cellId2")))
+        every { storage.savedKnownWifis } returns dummyWifiList
+        every { commandRunner.isConnectedToAnyValidSSIDs(dummyWifiList.wifis.map { it.ssid }) } returns true
         every { commandRunner.isWifiOn() } returns true
 
         val now = Date().time
@@ -99,9 +105,11 @@ class MonitoringLooperTest : TestCase() {
     fun `if not connected to wifi and wifi is off, a new state with proper time stamps and WAIT is generated`() =
         runBlockingTest {
             // given
-            every { commandRunner.isConnectedToAnyValidSSIDs() } returns false
+            val dummyWifiList = WifiList(listOf(WifiData("ssid1", "cellId1"), WifiData("ssid2", "cellId2")))
+            every { storage.savedKnownWifis } returns dummyWifiList
+            every { commandRunner.isConnectedToAnyValidSSIDs(dummyWifiList.wifis.map { it.ssid }) } returns false
             every { commandRunner.isWifiOn() } returns false
-            every { commandRunner.isWithinReachOfKnownCellTowers() } returns false
+            every { commandRunner.isWithinReachOfKnownCellTowers(dummyWifiList.wifis.map { it.cellID}) } returns false
 
             // when
             launch {
@@ -122,9 +130,11 @@ class MonitoringLooperTest : TestCase() {
     fun `if wifi is on, but no known SSID around, set instruction to TURN_OFF if threshold is met`() =
         runBlockingTest {
             // given
-            every { commandRunner.isConnectedToAnyValidSSIDs() } returns false
+            val dummyWifiList = WifiList(listOf(WifiData("ssid1", "cellId1"), WifiData("ssid2", "cellId2")))
+            every { storage.savedKnownWifis } returns dummyWifiList
+            every { commandRunner.isConnectedToAnyValidSSIDs(dummyWifiList.wifis.map { it.ssid }) } returns false
             every { commandRunner.isWifiOn() } returns true
-            every { commandRunner.isWithinReachOfKnownCellTowers() } returns false
+            every { commandRunner.isWithinReachOfKnownCellTowers(dummyWifiList.wifis.map { it.cellID}) } returns false
             val now = Date().time
             setLooperState(State(lastChecked = now, lastConnected = now - TURN_OFF_THRESHOLD_MILLIS))
 
@@ -147,9 +157,11 @@ class MonitoringLooperTest : TestCase() {
     fun `if wifi is on post threshold, turn off even if a cell tower is around`() =
         runBlockingTest {
             // given
-            every { commandRunner.isConnectedToAnyValidSSIDs() } returns false
+            val dummyWifiList = WifiList(listOf(WifiData("ssid1", "cellId1"), WifiData("ssid2", "cellId2")))
+            every { storage.savedKnownWifis } returns dummyWifiList
+            every { commandRunner.isConnectedToAnyValidSSIDs(dummyWifiList.wifis.map { it.ssid }) } returns false
             every { commandRunner.isWifiOn() } returns true
-            every { commandRunner.isWithinReachOfKnownCellTowers() } returns true
+            every { commandRunner.isWithinReachOfKnownCellTowers(dummyWifiList.wifis.map { it.cellID}) } returns true
             val now = Date().time
             setLooperState(State(lastChecked = now, lastConnected = now - TURN_OFF_THRESHOLD_MILLIS))
 
@@ -172,9 +184,11 @@ class MonitoringLooperTest : TestCase() {
     fun `if wifi is off and within reach of known cell, set state instruction to TURN_ON if interval is big enough`() =
         runBlockingTest {
             // given
-            every { commandRunner.isConnectedToAnyValidSSIDs() } returns false
+            val dummyWifiList = WifiList(listOf(WifiData("ssid1", "cellId1"), WifiData("ssid2", "cellId2")))
+            every { storage.savedKnownWifis } returns dummyWifiList
+            every { commandRunner.isConnectedToAnyValidSSIDs(dummyWifiList.wifis.map { it.ssid }) } returns false
             every { commandRunner.isWifiOn() } returns false
-            every { commandRunner.isWithinReachOfKnownCellTowers() } returns true
+            every { commandRunner.isWithinReachOfKnownCellTowers(dummyWifiList.wifis.map { it.cellID}) } returns true
             val now = Date().time
             setLooperState(State(lastChecked = now, firstCellSeen = now - TURN_ON_THRESHOLD_MILLIS))
 
@@ -198,9 +212,11 @@ class MonitoringLooperTest : TestCase() {
     fun `if wifi is off and within reach of known cell, set state instruction to WAIT if interval is not big enough`() =
         runBlockingTest {
             // given
-            every { commandRunner.isConnectedToAnyValidSSIDs() } returns false
+            val dummyWifiList = WifiList(listOf(WifiData("ssid1", "cellId1"), WifiData("ssid2", "cellId2")))
+            every { storage.savedKnownWifis } returns dummyWifiList
+            every { commandRunner.isConnectedToAnyValidSSIDs(dummyWifiList.wifis.map { it.ssid }) } returns false
             every { commandRunner.isWifiOn() } returns false
-            every { commandRunner.isWithinReachOfKnownCellTowers() } returns true
+            every { commandRunner.isWithinReachOfKnownCellTowers(dummyWifiList.wifis.map { it.cellID}) } returns true
             val now = Date().time
             setLooperState(State(lastChecked = now, firstCellSeen = now))
 
