@@ -1,6 +1,7 @@
 package com.michaelpohl.wifitool.ui.screens.mainscreen
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -45,6 +46,18 @@ fun MainScreen() {
             Text(text = "Current close CellTower ID: ")
             Text(text = state.currentConnectedWifi?.cellID ?: "unknown")
         }
-           }
+        state.currentConnectedWifi?.let {
+            Button(onClick = { viewModel.saveWifi(it) }, Modifier.padding(all = 16.dp)) {
+                Text(text = "Save Current Wifi")
+            }
+
+        }
+        Text(text = "Saved Wifis:")
+        Column() {
+            state.wifis.wifis.forEach {
+                Text(text = it.ssid)
+            }
+        }
+    }
 }
 
