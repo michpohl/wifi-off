@@ -8,8 +8,7 @@ import java.io.InputStreamReader
 class CommandRunner {
 
     fun getCurrentConnectedWifi(): WifiData? {
-        // TODO implement
-        // get ssid, if ssid exists, get celltowerid
+
         val ssidString = runShellCommand(ShellCommand.CHECK_SSID_COMMAND)
         val splitString = ssidString?.split("\"")
         if (splitString == null || splitString.size < 2) return null
@@ -45,11 +44,19 @@ class CommandRunner {
         return runShellCommand(ShellCommand.CHECK_WIFI_ON) == "1"
     }
 
+    fun turnWifiOn() {
+        runShellCommand(ShellCommand.TURN_WIFI_ON)
+    }
+
+    fun turnWifiOff() {
+        runShellCommand(ShellCommand.TURN_WIFI_OFF)
+    }
+
     companion object {
 
         private val ssidRegex = """=".*",""".toRegex()
         private val cellTowerRegex = """mCi=[0-9]*""".toRegex()
-        fun runShellCommand(command: String): String? {
+        private fun runShellCommand(command: String): String? {
             val splitCommand: Array<String> = command.split(" ").toTypedArray()
             val process = Runtime.getRuntime().exec(splitCommand)
             val processOutput = BufferedReader(InputStreamReader(process.inputStream)).readText()

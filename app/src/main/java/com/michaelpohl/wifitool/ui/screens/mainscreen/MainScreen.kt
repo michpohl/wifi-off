@@ -45,15 +45,23 @@ fun MainScreen(viewModel: MainScreenViewModel) {
             Text(text = state.currentConnectedWifi?.cellID ?: "unknown")
         }
         state.currentConnectedWifi?.let {
-            Button(onClick = { viewModel.saveWifi(it) }, Modifier.padding(all = 16.dp)) {
-                Text(text = "Save Current Wifi")
-            }
+            if (!state.isCurrentWifiAlreadySaved) {
 
+                Button(onClick = { viewModel.saveWifi(it) }, Modifier.padding(all = 16.dp)) {
+                    Text(text = "Save Current Wifi")
+                }
+            }
         }
         Text(text = "Saved Wifis:")
         Column() {
             state.wifis.wifis.forEach {
-                Text(text = it.ssid)
+                Row() {
+                    Text(text = it.ssid)
+                    Text(text = it.cellID)
+                    Button(onClick = { viewModel.deleteWifi(it) }) {
+                        Text(text = "Delete")
+                    }
+                }
             }
         }
     }

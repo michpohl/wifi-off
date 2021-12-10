@@ -8,4 +8,5 @@ data class MainScreenState(
     val currentConnectedWifi: WifiData? = null
 ) {
     val isInitialState = wifis.wifis.isEmpty() && currentConnectedWifi == null
+    val isCurrentWifiAlreadySaved = wifis.wifis.contains(currentConnectedWifi)
 }

@@ -34,6 +34,7 @@ class MonitoringLooper(
     }
 
     private suspend fun handleConnected() {
+        Timber.d("Handling connected")
         val now = Date().time
         currentState = currentState.copy(
             lastChecked = now,
@@ -48,6 +49,7 @@ class MonitoringLooper(
 
     private suspend fun handleDisconnected() {
         println("handleDisconnected")
+        Timber.d("Handling disconnected")
         val now = Date().time
         val isWifiOn = commandRunner.isWifiOn()
         println("isWifiOn")
@@ -63,40 +65,40 @@ class MonitoringLooper(
             } else {
                 currentState.copy(
                     lastChecked = now,
-                    lastConnected = now,
                     isWifiOn = false,
                     instruction = WifiInstruction.WAIT
                 )
             }
         } else {
             println("wifi off")
-            currentState = if (commandRunner.isWithinReachOfKnownCellTowers(localStorageRepo.savedKnownWifis.wifis.map { it.cellID })) {
-                println("within reach of cell tower, time since first seen: ${now - currentState.firstCellSeen}")
-                if (currentState.firstCellSeen != 0L && now - currentState.firstCellSeen > TURN_ON_THRESHOLD_MILLIS) {
-                    println("first")
-                    currentState.copy(
-                        lastChecked = now,
-                        isWifiOn = false,
-                        instruction = WifiInstruction.TURN_ON
-                    )
+            currentState =
+                if (commandRunner.isWithinReachOfKnownCellTowers(localStorageRepo.savedKnownWifis.wifis.map { it.cellID })) {
+                    println("within reach of cell tower, time since first seen: ${now - currentState.firstCellSeen}")
+                    if (currentState.firstCellSeen != 0L && now - currentState.firstCellSeen > TURN_ON_THRESHOLD_MILLIS) {
+                        println("first")
+                        currentState.copy(
+                            lastChecked = now,
+                            isWifiOn = false,
+                            instruction = WifiInstruction.TURN_ON
+                        )
+                    } else {
+                        println("second")
+                        currentState.copy(
+                            lastChecked = now,
+                            firstCellSeen = if (currentState.firstCellSeen == 0L) now else currentState.firstCellSeen,
+                            isWifiOn = false,
+                            instruction = WifiInstruction.WAIT
+                        )
+                    }
                 } else {
-                    println("second")
+                    println("not within reach")
                     currentState.copy(
                         lastChecked = now,
-                        firstCellSeen = if (currentState.firstCellSeen == 0L) now else currentState.firstCellSeen,
+                        firstCellSeen = 0L,
                         isWifiOn = false,
                         instruction = WifiInstruction.WAIT
                     )
                 }
-            } else {
-                println("not within reach")
-                currentState.copy(
-                    lastChecked = now,
-                    firstCellSeen = 0L,
-                    isWifiOn = false,
-                    instruction = WifiInstruction.WAIT
-                )
-            }
         }
         println("end")
         delay(SCAN_INTERVAL_MILLIS)

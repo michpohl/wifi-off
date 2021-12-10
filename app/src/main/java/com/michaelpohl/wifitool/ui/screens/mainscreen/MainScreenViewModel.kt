@@ -26,11 +26,14 @@ class MainScreenViewModel : UIStateFlowViewModel<MainScreenState>(), KoinCompone
 
     fun saveWifi(wifi: WifiData) {
         localStorage.saveWifi(wifi)
+        updateState(currentState.copy(localStorage.savedKnownWifis))
     }
 
     fun deleteWifi(wifi: WifiData) {
         localStorage.deleteWifi(wifi)
+        updateState(currentState.copy(localStorage.savedKnownWifis))
     }
+
     fun onMonitoringStateChanged(state: MonitoringLooper.State) {
         getCurrentConnectedWifi()
     }

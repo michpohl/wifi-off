@@ -3,7 +3,6 @@ package com.michaelpohl.wifiservice
 import android.app.*
 import android.content.Intent
 import android.os.*
-import com.michaelpohl.wifiservice.CommandRunner.Companion.runShellCommand
 import com.michaelpohl.wifiservice.di.serviceModule
 import com.michaelpohl.wifiservice.looper.MonitoringLooper
 import com.michaelpohl.wifiservice.looper.WifiInstruction
@@ -12,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
+import org.koin.core.component.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.core.parameter.parametersOf
 import timber.log.Timber
@@ -21,6 +21,7 @@ class MonitoringService : Service(), KoinComponent {
 
     private val binder = ServiceBinder()
     private val notificationHandler = NotificationHandler()
+    private val commandRunner: CommandRunner by inject()
 
     private lateinit var looper: MonitoringLooper
 
@@ -30,7 +31,6 @@ class MonitoringService : Service(), KoinComponent {
     var activityClass: Class<out Activity>? = null
     var serviceState = ServiceState.STOPPED
     var wifiStateListener: ((MonitoringLooper.State) -> Unit)? = null
-
     fun start() {
         initKoinModule()
         if (serviceState != ServiceState.RUNNING) startService(
@@ -50,7 +50,6 @@ class MonitoringService : Service(), KoinComponent {
     override fun onCreate() {
         Timber.d("Service created")
         super.onCreate()
-//        setupThread()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -66,11 +65,11 @@ class MonitoringService : Service(), KoinComponent {
         when (state.instruction) {
             WifiInstruction.TURN_OFF -> {
                 Timber.i("No known SSIDs visible. Turning off Wifi")
-                runShellCommand(ShellCommand.TURN_WIFI_OFF)
+                commandRunner.turnWifiOff()
             }
             WifiInstruction.TURN_ON -> {
                 Timber.i("Connected to known cell tower. Turning on Wifi")
-                runShellCommand(ShellCommand.TURN_WIFI_ON)
+                commandRunner.turnWifiOn()
             }
             WifiInstruction.WAIT -> Timber.d("No change necessary. Waiting")
         }

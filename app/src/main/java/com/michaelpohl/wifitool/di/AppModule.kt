@@ -9,8 +9,8 @@ import org.koin.dsl.module
 val appModule = module {
     single { get<Context>().getSharedPreferences(SHARED_PREFS_KEY, Context.MODE_PRIVATE) }
     single { Moshi.Builder().build() }
-    single { CommandRunner() }
     single { LocalStorage(get(), get()) }
+    single { CommandRunner() }
 }
 
 const val SHARED_PREFS_KEY = "wifitoolprefs"
