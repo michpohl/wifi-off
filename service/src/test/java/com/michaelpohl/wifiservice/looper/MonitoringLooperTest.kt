@@ -5,7 +5,7 @@ import com.michaelpohl.wifiservice.changePrivatePropertyTo
 import com.michaelpohl.wifiservice.looper.MonitoringLooper.Companion.SCAN_INTERVAL_MILLIS
 import com.michaelpohl.wifiservice.looper.MonitoringLooper.Companion.TURN_OFF_THRESHOLD_MILLIS
 import com.michaelpohl.wifiservice.looper.MonitoringLooper.Companion.TURN_ON_THRESHOLD_MILLIS
-import com.michaelpohl.wifiservice.looper.MonitoringLooper.State
+import com.michaelpohl.wifiservice.looper.MonitoringState
 import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifiservice.model.WifiList
 import com.michaelpohl.wifiservice.storage.LocalStorage

@@ -22,15 +22,19 @@ class CommandRunner {
                 this.value.forEach { if (it.isDigit()) idMatch = idMatch.plus(it) }
             }
 
-            Timber.d("cellid: $cellTowerId")
-            Timber.d("regex: $idMatch")
+//            Timber.d("cellid: $cellTowerId")
+//            Timber.d("regex: $idMatch")
             WifiData(splitString[1], idMatch)
         }
     }
 
     fun isWithinReachOfKnownCellTowers(cellIDs : List<String>): Boolean {
         var result = false
-        cellIDs.forEach { if (runShellCommand(ShellCommand.CHECK_CELL_TOWERS_COMMAND)?.contains(it) == true) result = true }
+        val command: String? = runShellCommand(ShellCommand.CHECK_CELL_TOWERS_COMMAND)
+        Timber.d("Command: $command")
+
+        cellIDs.forEach { if (command?.contains(it) == true) result = true }
+        Timber.d("Result: $result")
         return result
     }
 
@@ -41,7 +45,10 @@ class CommandRunner {
     }
 
     fun isWifiOn(): Boolean {
-        return runShellCommand(ShellCommand.CHECK_WIFI_ON) == "1"
+        val commandResult = runShellCommand(ShellCommand.CHECK_WIFI_ON)
+        val result = commandResult?.trim() == "1"
+        Timber.d("Is wifi on: commandResult: $commandResult, $result")
+        return result
     }
 
     fun turnWifiOn() {
@@ -56,6 +63,7 @@ class CommandRunner {
 
         private val ssidRegex = """=".*",""".toRegex()
         private val cellTowerRegex = """mCi=[0-9]*""".toRegex()
+
         private fun runShellCommand(command: String): String? {
             val splitCommand: Array<String> = command.split(" ").toTypedArray()
             val process = Runtime.getRuntime().exec(splitCommand)

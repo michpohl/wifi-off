@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.ServiceConnection
 import android.os.IBinder
 import com.michaelpohl.wifiservice.looper.MonitoringLooper
+import com.michaelpohl.wifiservice.looper.MonitoringState
 import timber.log.Timber
 
 class MonitoringServiceConnection(private val activityClass: Class<out Activity>) : ServiceConnection {
@@ -16,7 +17,7 @@ class MonitoringServiceConnection(private val activityClass: Class<out Activity>
     var monitoringService: MonitoringService? = null
         private set
 
-    var wifiStateListener: ((MonitoringLooper.State) -> Unit)? = null
+    var wifiStateListener: ((MonitoringState) -> Unit)? = null
         set(value) {
             field = value
             if (value == null) return

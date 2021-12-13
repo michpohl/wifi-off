@@ -11,6 +11,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.michaelpohl.wifiservice.MonitoringService
 import com.michaelpohl.wifiservice.MonitoringServiceConnection
 import com.michaelpohl.wifiservice.looper.MonitoringLooper
+import com.michaelpohl.wifiservice.looper.MonitoringState
 import com.michaelpohl.wifitool.common.util.CallbackTimberTree
 import com.michaelpohl.wifitool.ui.screens.mainscreen.MainScreen
 import com.michaelpohl.wifitool.ui.screens.mainscreen.MainScreenViewModel
@@ -42,17 +43,21 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-    }
 
-    private fun onMonitoringStateChanged(state : MonitoringLooper.State) {
+    }
+    private fun onMonitoringStateChanged(state : MonitoringState) {
         viewModel.onMonitoringStateChanged(state)
     }
 
     private fun initTimber() {
         if (Timber.forest().size < 1) {
-            Timber.plant(CallbackTimberTree { Toast.makeText(this, it, Toast.LENGTH_SHORT).show() })
+            Timber.plant(CallbackTimberTree { showToast(it) })
         }
         Timber.d("Timber is on")
+    }
+
+    private fun showToast(it: String) {
+//        Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
     }
 
     override fun onResume() {

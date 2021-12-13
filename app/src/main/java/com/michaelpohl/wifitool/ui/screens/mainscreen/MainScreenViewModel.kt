@@ -2,6 +2,7 @@ package com.michaelpohl.wifitool.ui.screens.mainscreen
 
 import com.michaelpohl.wifiservice.CommandRunner
 import com.michaelpohl.wifiservice.looper.MonitoringLooper
+import com.michaelpohl.wifiservice.looper.MonitoringState
 import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifiservice.storage.LocalStorage
 import com.michaelpohl.wifitool.ui.common.UIStateFlowViewModel
@@ -34,7 +35,7 @@ class MainScreenViewModel : UIStateFlowViewModel<MainScreenState>(), KoinCompone
         updateState(currentState.copy(localStorage.savedKnownWifis))
     }
 
-    fun onMonitoringStateChanged(state: MonitoringLooper.State) {
+    fun onMonitoringStateChanged(state: MonitoringState) {
         getCurrentConnectedWifi()
     }
 }

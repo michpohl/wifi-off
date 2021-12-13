@@ -1,3 +1,10 @@
 <resources>
-    <string name="app_name">Wifi Tool</string>
+    <string name="app_name">Wifi-Off</string>
+    <string name="current_wifi_info">Current connected Wifi: %s</string>
+    <string name="current_cell_info">Current close CellTower ID: %s</string>
+    <string name="last_connected_info">Last time connected: %s</string>
+    <string name="unknown">Unknown</string>
+    <string name="btn_save_current_wifi">Save Current Wifi</string>
+    <string name="saved_wifis_info">Saved Wifis</string>
+    <string name="btn_delete_wifi">Delete</string>
 </resources>

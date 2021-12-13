@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.*
 import com.michaelpohl.wifiservice.di.serviceModule
 import com.michaelpohl.wifiservice.looper.MonitoringLooper
+import com.michaelpohl.wifiservice.looper.MonitoringState
 import com.michaelpohl.wifiservice.looper.WifiInstruction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,11 +27,10 @@ class MonitoringService : Service(), KoinComponent {
     private lateinit var looper: MonitoringLooper
 
     private lateinit var notificationManager: NotificationManager
-    private lateinit var serviceHandler: Handler
 
     var activityClass: Class<out Activity>? = null
     var serviceState = ServiceState.STOPPED
-    var wifiStateListener: ((MonitoringLooper.State) -> Unit)? = null
+    var wifiStateListener: ((MonitoringState) -> Unit)? = null
     fun start() {
         initKoinModule()
         if (serviceState != ServiceState.RUNNING) startService(
@@ -44,7 +44,7 @@ class MonitoringService : Service(), KoinComponent {
 
     private fun initKoinModule() {
         loadKoinModules(serviceModule)
-        looper = get { parametersOf({ state: MonitoringLooper.State -> onWifiStateChanged(state) }) }
+        looper = get { parametersOf({ state: MonitoringState -> onWifiStateChanged(state) }) }
     }
 
     override fun onCreate() {
@@ -61,7 +61,7 @@ class MonitoringService : Service(), KoinComponent {
         return START_NOT_STICKY
     }
 
-    private fun onWifiStateChanged(state: MonitoringLooper.State) {
+    private fun onWifiStateChanged(state: MonitoringState) {
         when (state.instruction) {
             WifiInstruction.TURN_OFF -> {
                 Timber.i("No known SSIDs visible. Turning off Wifi")
@@ -85,12 +85,6 @@ class MonitoringService : Service(), KoinComponent {
             notificationManager.createNotificationChannel(this)
         }
     }
-
-//    private fun setupThread() {
-//        val handlerThread = HandlerThread(TAG)
-//        handlerThread.start()
-//        serviceHandler = Handler(handlerThread.looper)
-//    }
 
     override fun onBind(intent: Intent): IBinder {
         stopForeground(true)
@@ -124,7 +118,6 @@ class MonitoringService : Service(), KoinComponent {
     }
 
     override fun onDestroy() {
-        serviceHandler.removeCallbacksAndMessages(null)
         super.onDestroy()
     }
 
