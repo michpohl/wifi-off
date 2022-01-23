@@ -28,7 +28,7 @@ class CommandRunner {
         }
     }
 
-    fun isWithinReachOfKnownCellTowers(cellIDs : List<String>): Boolean {
+    fun isWithinReachOfKnownCellTowers(cellIDs: List<String>): Boolean {
         var result = false
         val command: String? = runShellCommand(ShellCommand.CHECK_CELL_TOWERS_COMMAND)
         Timber.d("Command: $command")
@@ -40,7 +40,10 @@ class CommandRunner {
 
     fun isConnectedToAnyValidSSIDs(ssids: List<String>): Boolean {
         var result = false
-        ssids.forEach { if (runShellCommand(ShellCommand.CHECK_SSID_COMMAND)?.contains(it) == true) result = true }
+        ssids.forEach {
+            if (runShellCommand(ShellCommand.CHECK_SSID_COMMAND)?.contains(it) == true) result =
+                true
+        }
         return result
     }
 

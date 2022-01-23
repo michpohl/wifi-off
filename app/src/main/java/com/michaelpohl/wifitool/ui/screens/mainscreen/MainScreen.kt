@@ -1,6 +1,7 @@
 package com.michaelpohl.wifitool.ui.screens.mainscreen
 
 import android.widget.ToggleButton
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.Text
@@ -11,9 +12,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
+import com.michaelpohl.design.util.appColors
+import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifitool.R
 
 @Composable
@@ -32,45 +36,60 @@ fun MainScreen(viewModel: MainScreenViewModel) {
         viewModel.getSavedWifis()
         viewModel.getCurrentConnectedWifi()
     }
+    Column {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 16.dp, end = 16.dp)
+                .background(color = appColors.background)
+        ) {
+            val ssidText = stringResource(
+                R.string.current_wifi_info,
+                state.currentConnectedWifi?.ssid ?: stringResource(id = R.string.unknown)
+            )
+            val cellText = stringResource(
+                R.string.current_cell_info,
+                state.currentConnectedWifi?.cellID ?: stringResource(id = R.string.unknown)
+            )
 
-    Column(
-        Modifier
-            .fillMaxHeight()
-            .fillMaxWidth()
-            .padding(start = 16.dp, top = 16.dp, end = 16.dp)
-    ) {
-        val ssidText = stringResource(
-            R.string.current_wifi_info,
-            state.currentConnectedWifi?.ssid ?: stringResource(id = R.string.unknown)
-        )
-        val cellText = stringResource(
-            R.string.current_cell_info,
-            state.currentConnectedWifi?.cellID ?: stringResource(id = R.string.unknown)
-        )
+            Text(text = ssidText, Modifier.padding(all = 16.dp))
+            Text(text = cellText, Modifier.padding(all = 16.dp))
 
-        Text(text = ssidText)
-        Text(text = cellText)
+            state.currentConnectedWifi?.let {
+                if (!state.isCurrentWifiAlreadySaved) {
 
-        state.currentConnectedWifi?.let {
-            if (!state.isCurrentWifiAlreadySaved) {
-
-                Button(onClick = { viewModel.saveWifi(it) }, Modifier.padding(all = 16.dp)) {
-                    Text(text = stringResource(R.string.btn_save_current_wifi))
+                    Button(onClick = { viewModel.saveWifi(it) }, Modifier.padding(all = 16.dp)) {
+                        Text(text = stringResource(R.string.btn_save_current_wifi))
+                    }
                 }
             }
         }
-        Text(text = stringResource(R.string.saved_wifis_info))
-        Column() {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 16.dp, end = 16.dp)
+                .background(color = appColors.background)
+        ) {
+            Text(text = stringResource(R.string.saved_wifis_info))
             state.wifis.wifis.forEach {
-                Row() {
-                    Text(text = it.ssid)
-                    Text(text = it.cellID)
-                    Button(onClick = { viewModel.deleteWifi(it) }) {
-                        Text(text = stringResource(R.string.btn_delete_wifi))
-                    }
-                }
+                SavedWifiEntry(it, viewModel)
             }
         }
     }
 }
 
+@Composable
+private fun SavedWifiEntry(
+    it: WifiData,
+    viewModel: MainScreenViewModel
+) {
+    Row() {
+        Text(text = it.ssid)
+        Text(text = it.cellID)
+        Button(onClick = { viewModel.deleteWifi(it) }) {
+            Text(text = stringResource(R.string.btn_delete_wifi))
+        }
+    }
+}
+
+        
