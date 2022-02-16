@@ -5,6 +5,10 @@ import timber.log.Timber
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
+/**
+ * Wrapper class for executing shell commands. The shell commands this app is running are
+ * executed by this class, wrapped by functions built around the needed functionalities
+ */
 class CommandRunner {
 
     fun getCurrentConnectedWifi(): WifiData? {
