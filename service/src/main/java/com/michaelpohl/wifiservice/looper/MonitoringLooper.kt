@@ -1,35 +1,38 @@
 package com.michaelpohl.wifiservice.looper
 
 import com.michaelpohl.wifiservice.CommandRunner
+import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifiservice.storage.LocalStorage
 import kotlinx.coroutines.delay
 import timber.log.Timber
 import java.util.*
 
-// TODO define only one now per loop, not one per function
 class MonitoringLooper(
     private val commandRunner: CommandRunner,
     private val localStorageRepo: LocalStorage,
     val onStateChanged: (MonitoringState) -> Unit,
 ) {
 
-    private var shouldStop = false
-    private var currentState = MonitoringState()
-        set(value) {
-            Timber.d("new state: $value")
-            println("new state: $value")
-            field = value
-            onStateChanged(value)
-        }
-
     var scanInterval = DEFAULT_SCAN_INTERVAL_MILLIS
     var turnOffThreshold = DEFAULT_TURN_OFF_THRESHOLD_MILLIS
     var turnOnThreshold = DEFAULT_TURN_ON_THRESHOLD_MILLIS
     var turnedOffMinThreshold = DEFAULT_TURNED_OFF_MIN_THRESHOLD_MILLIS
+
+    private var shouldStop = false
+    private var now = 0L
+
+    private var currentState = MonitoringState()
+        set(value) {
+            Timber.d("new state: $value")
+            field = value
+            onStateChanged(value)
+        }
+
     suspend fun loop() {
         Timber.d("\n***\nloop\n***")
         if (shouldStop) return
         // first we check if wifi is on
+        now = Date().time
         if (commandRunner.isWifiOn()) {
             handleWifiOn()
         } else {
@@ -43,9 +46,12 @@ class MonitoringLooper(
 
     // if wifi is on, we have to check if we are connected to a known ssid
     private fun handleWifiOn() {
+        currentState = currentState.copy(
+            wifiTurnedOffAt = null
+        )
         Timber.d("handleWifiOn")
-        val isConnected =
-            commandRunner.isConnectedToAnyValidSSIDs(localStorageRepo.savedKnownWifis.wifis.map { it.ssid })
+        val isConnected = commandRunner.isConnectedToAnyWifi()
+        Timber.d(" Is connected: $isConnected")
         if (isConnected) {
             handleConnectedToWifi()
         } else {
@@ -56,33 +62,34 @@ class MonitoringLooper(
     // if connected to a known ssid, we update our timestamps and instruct to WAIT
     private fun handleConnectedToWifi() {
         Timber.d("HandleConnectedToWifi")
-        val now = Date().time
         currentState = currentState.copy(
             lastChecked = now,
             lastConnected = now,
-            instruction = WifiInstruction.WAIT
+            instruction = WifiInstruction.WAIT,
+            connectedWifi = getCurrentConnectedWifi()
         )
     }
 
     // if wifi is on, but we are not connected to a known ssid, then we want to
     // turn wifi off if we are past our turnOffThreshold
+    // if we execute this function we also have to erase the connectedWifi
     private fun handleNotConnectedToWifi() {
         Timber.d("HandleNotConnectedToWifi")
         // check threshold, disconnect if qualified
-        val now = Date().time
         currentState.lastConnected?.let { lastConnectedTime ->
-            if (now - turnOffThreshold > lastConnectedTime) {
+            currentState = if (now - turnOffThreshold > lastConnectedTime) {
                 Timber.d("Turning wifi off, past threshold")
-                currentState =
-                    currentState.copy(
-                        lastChecked = now,
-                        wifiTurnedOffAt = now,
-                        instruction = WifiInstruction.TURN_OFF
-                    )
-            } else {
-                currentState = currentState.copy(
+                currentState.copy(
                     lastChecked = now,
-                    instruction = WifiInstruction.WAIT
+                    wifiTurnedOffAt = now,
+                    instruction = WifiInstruction.TURN_OFF,
+                    connectedWifi = null
+                )
+            } else {
+                currentState.copy(
+                    lastChecked = now,
+                    instruction = WifiInstruction.WAIT,
+                    connectedWifi = null
                 )
             }
         } ?: run {
@@ -91,7 +98,8 @@ class MonitoringLooper(
             currentState.copy(
                 lastChecked = now,
                 lastConnected = now,
-                instruction = WifiInstruction.WAIT
+                instruction = WifiInstruction.WAIT,
+                connectedWifi = null
             )
         }
     }
@@ -99,9 +107,12 @@ class MonitoringLooper(
     // if wifi is turned off, we check if the off duration has already passed our
     // turnedOffThreshold. If so, we call the according function, otherwise just update the state.
     private fun handleWifiOff() {
+
+        // as a security measure let's erase the last connectedWifi from our state first
+        currentState = currentState.copy(connectedWifi = null)
+
         Timber.d("HandleWifiOff")
         // if turnedOffThreshold passed
-        val now = Date().time
         currentState.wifiTurnedOffAt?.let {
             Timber.d("Difference: ${now - turnedOffMinThreshold - it}")
             if (now - turnedOffMinThreshold > it) {
@@ -136,7 +147,8 @@ class MonitoringLooper(
             currentState =
                 currentState.copy(
                     lastChecked = Date().time,
-                    instruction = WifiInstruction.WAIT
+                    instruction = WifiInstruction.WAIT,
+                    connectedToKnownCell = false
                 )
         }
     }
@@ -145,7 +157,6 @@ class MonitoringLooper(
     // we instruct to turn the wifi back on
     private fun handleConnectedToKnownCell() {
         Timber.d("HandleConnectedToKnownCell")
-        val now = Date().time
         currentState.wifiTurnedOffAt?.let { wifiTurnedOffTime ->
 
             if (now - turnOnThreshold > wifiTurnedOffTime) {
@@ -165,6 +176,10 @@ class MonitoringLooper(
                 instruction = WifiInstruction.WAIT
             )
         }
+    }
+
+    private fun getCurrentConnectedWifi(): WifiData? {
+        return commandRunner.getCurrentConnectedWifi()
     }
 
     fun stop() {
@@ -187,10 +202,27 @@ data class MonitoringState(
     val lastConnected: Long? = null,
     val wifiTurnedOffAt: Long? = null,
     val firstCellSeen: Long? = null,
+    val connectedToKnownCell: Boolean = false,
     val isWifiOn: Boolean = false,
-    val instruction: WifiInstruction = WifiInstruction.WAIT
-)
+    val instruction: WifiInstruction = WifiInstruction.WAIT,
+    val connectedWifi: WifiData? = null
+) {
+    val wifiSituation: WifiSituation = when {
+        connectedWifi != null -> WifiSituation.WIFI_CONNECTED
+        isWifiOn -> WifiSituation.WIFI_ON
+        else -> WifiSituation.WIFI_OFF
+    }
+}
+
+enum class PhonePosition {
+    CLOSE_TO_KNOWN_WIFI, AWAY_FROM_KNOWN_WIFI, UNKNOWN
+}
 
 enum class WifiInstruction {
     TURN_OFF, TURN_ON, WAIT
 }
+
+enum class WifiSituation {
+    WIFI_ON, WIFI_CONNECTED, WIFI_OFF, UNKNOWN
+}
+

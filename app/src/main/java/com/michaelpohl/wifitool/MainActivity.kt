@@ -10,21 +10,19 @@ import androidx.compose.material.Surface
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.michaelpohl.wifiservice.MonitoringService
 import com.michaelpohl.wifiservice.MonitoringServiceConnection
-import com.michaelpohl.wifiservice.looper.MonitoringLooper
 import com.michaelpohl.wifiservice.looper.MonitoringState
 import com.michaelpohl.wifitool.common.util.CallbackTimberTree
 import com.michaelpohl.wifitool.ui.screens.mainscreen.MainScreen
 import com.michaelpohl.wifitool.ui.screens.mainscreen.MainScreenViewModel
 import com.michaelpohl.wifitool.ui.theme.WifiToolTheme
 import timber.log.Timber
-import java.io.IOException
 
 class MainActivity : ComponentActivity() {
 
     private val serviceConnection = MonitoringServiceConnection(this::class.java).apply {
         onServiceConnectedListener = {
             Timber.d("Connected!")
-            it.getService().wifiStateListener = { state -> onMonitoringStateChanged(state)}
+            it.getService().wifiStateListener = { state -> onMonitoringStateChanged(state) }
         }
     }
 
@@ -32,7 +30,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        initTimber()
 
         setContent {
             WifiToolTheme {
@@ -43,25 +40,31 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
     }
-    private fun onMonitoringStateChanged(state : MonitoringState) {
+
+    private fun onMonitoringStateChanged(state: MonitoringState) {
         viewModel.onMonitoringStateChanged(state)
     }
 
     private fun initTimber() {
-        if (Timber.forest().size < 1) {
-            Timber.plant(CallbackTimberTree { showToast(it) })
-        }
+//        if (Timber.forest().size < 1) {
+        Timber.uprootAll()
+        Timber.plant(CallbackTimberTree {
+            if (::viewModel.isInitialized) viewModel.onTimberMessage(
+                it
+            )
+        })
         Timber.d("Timber is on")
+//        }
     }
 
     private fun showToast(it: String) {
-//        Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
     }
 
     override fun onResume() {
         super.onResume()
+        initTimber()
         Timber.d("onResume")
         bindService(
             Intent(this, MonitoringService::class.java),

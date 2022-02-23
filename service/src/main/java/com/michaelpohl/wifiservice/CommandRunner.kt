@@ -17,7 +17,7 @@ class CommandRunner {
         val splitString = ssidString?.split("\"")
         if (splitString == null || splitString.size < 2) return null
         // The regex works, but we don't need it at this point
-        // Timber.d("ssid regex: ${ssidRegex.find(ssidString ?: "")?.groups?.get(0)?.value}")
+//        Timber.d("ssid regex: ${ssidRegex.find(ssidString ?: "")?.groups?.get(0)?.value}")
 
         val cellTowerId = runShellCommand(ShellCommand.CHECK_CELL_TOWERS_COMMAND)
         return cellTowerId?.let {
@@ -35,11 +35,15 @@ class CommandRunner {
     fun isWithinReachOfKnownCellTowers(cellIDs: List<String>): Boolean {
         var result = false
         val command: String? = runShellCommand(ShellCommand.CHECK_CELL_TOWERS_COMMAND)
-        Timber.d("Command: $command")
+//        Timber.d("Command: $command")
 
         cellIDs.forEach { if (command?.contains(it) == true) result = true }
-        Timber.d("Result: $result")
+        Timber.d("Check cell towers result: $result")
         return result
+    }
+
+    fun isConnectedToAnyWifi(): Boolean {
+        return (runShellCommand(ShellCommand.CHECK_SSID_COMMAND)?.contains(wifiConnectionString) == true)
     }
 
     fun isConnectedToAnyValidSSIDs(ssids: List<String>): Boolean {
@@ -67,6 +71,8 @@ class CommandRunner {
     }
 
     companion object {
+
+        private const val wifiConnectionString = "networkId=\""
 
         private val ssidRegex = """=".*",""".toRegex()
         private val cellTowerRegex = """mCi=[0-9]*""".toRegex()
