@@ -14,6 +14,7 @@ import com.michaelpohl.wifiservice.looper.MonitoringState
 import com.michaelpohl.wifitool.common.util.CallbackTimberTree
 import com.michaelpohl.wifitool.ui.screens.mainscreen.MainScreen
 import com.michaelpohl.wifitool.ui.screens.mainscreen.MainScreenViewModel
+import com.michaelpohl.wifitool.ui.screens.mainscreen.MainScreenViewModelFactory
 import com.michaelpohl.wifitool.ui.theme.WifiToolTheme
 import timber.log.Timber
 
@@ -35,7 +36,7 @@ class MainActivity : ComponentActivity() {
             WifiToolTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-                    viewModel = viewModel()
+                    viewModel = MainScreenViewModelFactory(serviceConnection).build()
                     MainScreen(viewModel)
                 }
             }
@@ -47,7 +48,8 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun initTimber() {
-//        if (Timber.forest().size < 1) {
+        // There have been inconsistencies when reusing Timber from a previous activity instance,
+        // so it seems safer to always throw them out on restart.
         Timber.uprootAll()
         Timber.plant(CallbackTimberTree {
             if (::viewModel.isInitialized) viewModel.onTimberMessage(
@@ -55,7 +57,6 @@ class MainActivity : ComponentActivity() {
             )
         })
         Timber.d("Timber is on")
-//        }
     }
 
     private fun showToast(it: String) {

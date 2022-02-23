@@ -1,15 +1,15 @@
 package com.michaelpohl.wifitool.ui.screens.mainscreen
 
-import com.michaelpohl.wifiservice.CommandRunner
+import android.content.ServiceConnection
 import com.michaelpohl.wifiservice.looper.MonitoringState
 import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifiservice.storage.LocalStorage
 import com.michaelpohl.wifitool.ui.common.UIStateFlowViewModel
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import timber.log.Timber
 
-class MainScreenViewModel : UIStateFlowViewModel<MainScreenState>(), KoinComponent {
+class MainScreenViewModel(private val connection: ServiceConnection) :
+    UIStateFlowViewModel<MainScreenState>(), KoinComponent {
 
     private val localStorage: LocalStorage by inject()
 
@@ -33,10 +33,12 @@ class MainScreenViewModel : UIStateFlowViewModel<MainScreenState>(), KoinCompone
     }
 
     fun onMonitoringStateChanged(state: MonitoringState) {
-        updateState(currentState.copy(
-            currentConnectedWifi = state.connectedWifi,
-            wifiSituation = state.wifiSituation
-        ))
+        updateState(
+            currentState.copy(
+                currentConnectedWifi = state.connectedWifi,
+                wifiSituation = state.wifiSituation
+            )
+        )
     }
 
     fun onTimberMessage(message: String) {
@@ -46,6 +48,7 @@ class MainScreenViewModel : UIStateFlowViewModel<MainScreenState>(), KoinCompone
     }
 
     fun toggleServiceEnabled(it: Boolean) {
-
+        
     }
 }
+
