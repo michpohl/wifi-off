@@ -53,11 +53,8 @@ private fun MainToggle(
     onToggle: (Boolean) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        val toggleState = remember { mutableStateOf(state.isServiceEnabled) }
-
-        Switch(checked = toggleState.value, onCheckedChange = {
-            toggleState.value = it
-            onToggle(toggleState.value)
+        Switch(checked = state.isServiceEnabled, onCheckedChange = {
+            onToggle(it)
         })
     }
 }

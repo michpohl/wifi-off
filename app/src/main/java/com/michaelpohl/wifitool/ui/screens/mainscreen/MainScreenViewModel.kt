@@ -18,7 +18,12 @@ class MainScreenViewModel(private val connection: MonitoringServiceConnection) :
     }
 
     fun getSavedWifis() {
-        updateState(currentState.copy(localStorage.savedKnownWifis))
+        updateState(
+            currentState.copy(
+                wifis = localStorage.savedKnownWifis,
+                isServiceEnabled = localStorage.loadEnabledState()
+            )
+        )
     }
 
 
@@ -50,6 +55,8 @@ class MainScreenViewModel(private val connection: MonitoringServiceConnection) :
     fun toggleServiceEnabled(isEnabled: Boolean) {
         connection.monitoringService?.let {
             it.isEnabled = isEnabled
+            localStorage.saveEnabledState(isEnabled = isEnabled)
+            updateState(currentState.copy(isServiceEnabled = isEnabled))
         }
             ?: error("Service not accessible from ViewModel!")
     }

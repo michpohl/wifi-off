@@ -4,27 +4,17 @@ import android.content.SharedPreferences
 import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifiservice.model.WifiList
 import com.squareup.moshi.Moshi
+import timber.log.Timber
 
 class LocalStorage(private val sharedPreferences: SharedPreferences, moshi: Moshi) {
 
     private val adapter = moshi.adapter(WifiList::class.java)
-
-    var savedKnownWifis = WifiList(listOf())
+    // TODO what is up with this var and the get method? No point doing it like this
+    var savedKnownWifis = loadSavedWifis()
     private set
 
-    init {
-        savedKnownWifis = getSavedWifis()
-    }
-
-    private fun getSavedWifis(): WifiList {
-        val wifiJson = sharedPreferences.getString(WIFIS_TAG, null)
-        return wifiJson?.let {
-            adapter.fromJson(wifiJson)
-        } ?: WifiList(listOf())
-    }
-
     fun saveWifi(wifi: WifiData) {
-        val knownWifis = getSavedWifis().wifis.toMutableList()
+        val knownWifis = loadSavedWifis().wifis.toMutableList()
         val indexOfExistingSameWifi = knownWifis.find { it == wifi }?.let {
             knownWifis.indexOf(it)
         }
@@ -40,7 +30,7 @@ class LocalStorage(private val sharedPreferences: SharedPreferences, moshi: Mosh
     }
 
     fun deleteWifi(wifi: WifiData) {
-        val knownWifis = getSavedWifis().wifis.toMutableList()
+        val knownWifis = loadSavedWifis().wifis.toMutableList()
         val indexOfExistingWifiToDelete = knownWifis.find { it == wifi }?.let {
             knownWifis.indexOf(it)
         }
@@ -54,8 +44,28 @@ class LocalStorage(private val sharedPreferences: SharedPreferences, moshi: Mosh
         savedKnownWifis = WifiList(knownWifis)
     }
 
+    fun saveEnabledState(isEnabled: Boolean) {
+        with (sharedPreferences.edit()) {
+            putBoolean(ENABLED_STATE_TAG, isEnabled)
+            apply()
+        }
+        Timber.d("Saved: $isEnabled")
+    }
+
+    fun loadEnabledState(): Boolean {
+        return sharedPreferences.getBoolean(ENABLED_STATE_TAG, false)
+    }
+
+    private fun loadSavedWifis(): WifiList {
+        val wifiJson = sharedPreferences.getString(WIFIS_TAG, null)
+        return wifiJson?.let {
+            adapter.fromJson(wifiJson)
+        } ?: WifiList(listOf())
+    }
+
     companion object {
 
         private const val WIFIS_TAG = "knownwifis"
+        private const val ENABLED_STATE_TAG = "isenabled"
     }
 }

@@ -1,8 +1,11 @@
 package com.michaelpohl.wifiservice
 
-import android.app.*
+import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.Service
 import android.content.Intent
-import android.os.*
+import android.os.IBinder
 import com.michaelpohl.wifiservice.di.serviceModule
 import com.michaelpohl.wifiservice.looper.MonitoringLooper
 import com.michaelpohl.wifiservice.looper.MonitoringState
@@ -16,7 +19,6 @@ import org.koin.core.component.inject
 import org.koin.core.context.loadKoinModules
 import org.koin.core.parameter.parametersOf
 import timber.log.Timber
-import java.util.*
 
 class MonitoringService : Service(), KoinComponent {
 
@@ -109,7 +111,10 @@ class MonitoringService : Service(), KoinComponent {
         // and therefore we shouldn't do anything
         activityClass?.let {
             setupNotification()
-            startForeground(NOTIFICATION_ID, notificationHandler.buildNotification(this, activityClass!!))
+            startForeground(
+                NOTIFICATION_ID,
+                notificationHandler.buildNotification(this, activityClass!!)
+            )
             return true
         }
             ?: Timber.w("No activity class found!")
@@ -154,5 +159,6 @@ class MonitoringService : Service(), KoinComponent {
     }
 }
 
-enum class ServiceState { RUNNING, STOPPED
+enum class ServiceState {
+    RUNNING, STOPPED
 }
