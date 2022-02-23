@@ -1,6 +1,6 @@
 package com.michaelpohl.wifitool.ui.screens.mainscreen
 
-import android.content.ServiceConnection
+import com.michaelpohl.wifiservice.MonitoringServiceConnection
 import com.michaelpohl.wifiservice.looper.MonitoringState
 import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifiservice.storage.LocalStorage
@@ -8,7 +8,7 @@ import com.michaelpohl.wifitool.ui.common.UIStateFlowViewModel
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
-class MainScreenViewModel(private val connection: ServiceConnection) :
+class MainScreenViewModel(private val connection: MonitoringServiceConnection) :
     UIStateFlowViewModel<MainScreenState>(), KoinComponent {
 
     private val localStorage: LocalStorage by inject()
@@ -47,8 +47,11 @@ class MainScreenViewModel(private val connection: ServiceConnection) :
         }))
     }
 
-    fun toggleServiceEnabled(it: Boolean) {
-        
+    fun toggleServiceEnabled(isEnabled: Boolean) {
+        connection.monitoringService?.let {
+            it.isEnabled = isEnabled
+        }
+            ?: error("Service not accessible from ViewModel!")
     }
 }
 

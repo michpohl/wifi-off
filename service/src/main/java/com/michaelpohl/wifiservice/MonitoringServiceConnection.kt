@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.ComponentName
 import android.content.ServiceConnection
 import android.os.IBinder
-import com.michaelpohl.wifiservice.looper.MonitoringLooper
 import com.michaelpohl.wifiservice.looper.MonitoringState
 import timber.log.Timber
 
@@ -35,7 +34,7 @@ class MonitoringServiceConnection(private val activityClass: Class<out Activity>
         val binder = service as MonitoringService.ServiceBinder
         this@MonitoringServiceConnection.monitoringService = binder.getService().apply {
             activityClass = this@MonitoringServiceConnection.activityClass
-            start()
+            initService()
         }
         monitoringInterface = binder
         onServiceConnectedListener?.invoke(binder)

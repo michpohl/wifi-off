@@ -25,20 +25,25 @@ class MonitoringService : Service(), KoinComponent {
     private val commandRunner: CommandRunner by inject()
 
     private lateinit var looper: MonitoringLooper
-
     private lateinit var notificationManager: NotificationManager
+
+    var isEnabled = false
+        set(value) {
+            if (value) startService() else stop()
+            field = value
+        }
 
     var activityClass: Class<out Activity>? = null
     var serviceState = ServiceState.STOPPED
     var wifiStateListener: ((MonitoringState) -> Unit)? = null
-    fun start() {
+
+    fun initService() {
         initKoinModule()
-        if (serviceState != ServiceState.RUNNING) startService(
-            Intent(
-                applicationContext,
-                MonitoringService::class.java
-            )
-        )
+        if (isEnabled && serviceState != ServiceState.RUNNING) startService()
+    }
+
+    private fun startService() {
+        startService(Intent(applicationContext, MonitoringService::class.java))
         serviceState = ServiceState.RUNNING
     }
 
@@ -114,6 +119,7 @@ class MonitoringService : Service(), KoinComponent {
     private fun stop() {
         Timber.d("Service stopped")
         serviceState = ServiceState.STOPPED
+        looper.stop()
         stopSelf()
     }
 
