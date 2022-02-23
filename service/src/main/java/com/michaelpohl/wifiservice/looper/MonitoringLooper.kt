@@ -38,10 +38,8 @@ class MonitoringLooper(
         } else {
             handleWifiOff()
         }
-        if (!shouldStop) {
-            delay(scanInterval)
-            loop()
-        }
+        delay(scanInterval)
+        loop()
     }
 
     // if wifi is on, we have to check if we are connected to a known ssid
@@ -180,6 +178,11 @@ class MonitoringLooper(
 
     private fun getCurrentConnectedWifi(): WifiData? {
         return commandRunner.getCurrentConnectedWifi()
+    }
+
+    suspend fun start() {
+        shouldStop = false
+        loop()
     }
 
     fun stop() {

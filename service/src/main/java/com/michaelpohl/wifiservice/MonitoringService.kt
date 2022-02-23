@@ -61,7 +61,7 @@ class MonitoringService : Service(), KoinComponent {
         Timber.d("Service started")
         handleNotificationStopClicked(intent)
         CoroutineScope(Dispatchers.Main).launch {
-            looper.loop()
+            looper.start()
         }
         return START_NOT_STICKY
     }
