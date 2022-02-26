@@ -8,7 +8,7 @@ apply {
 }
 
 // TODO when moving all gradle files to kts, this cann go back to rootproject and be by extra
-val composeVersion = "1.0.5"
+val composeVersion = "1.1.1"
 
 android {
     compileSdk = 31
