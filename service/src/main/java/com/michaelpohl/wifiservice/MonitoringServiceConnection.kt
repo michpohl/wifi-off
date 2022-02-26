@@ -30,7 +30,7 @@ class MonitoringServiceConnection(private val activityClass: Class<out Activity>
 //    }
 
     override fun onServiceConnected(name: ComponentName, service: IBinder) {
-        Timber.d("Service connected")
+        Timber.d("Connection says: Service connected")
         val binder = service as MonitoringService.ServiceBinder
         this@MonitoringServiceConnection.monitoringService = binder.getService().apply {
             activityClass = this@MonitoringServiceConnection.activityClass

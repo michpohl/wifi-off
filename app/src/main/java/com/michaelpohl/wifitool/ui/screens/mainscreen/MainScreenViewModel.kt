@@ -7,6 +7,7 @@ import com.michaelpohl.wifiservice.storage.LocalStorage
 import com.michaelpohl.wifitool.ui.common.UIStateFlowViewModel
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import timber.log.Timber
 
 class MainScreenViewModel(private val connection: MonitoringServiceConnection) :
     UIStateFlowViewModel<MainScreenState>(), KoinComponent {
@@ -18,12 +19,14 @@ class MainScreenViewModel(private val connection: MonitoringServiceConnection) :
     }
 
     fun getSavedWifis() {
+        val isServiceEnabled = localStorage.loadEnabledState()
         updateState(
             currentState.copy(
                 wifis = localStorage.savedKnownWifis,
-                isServiceEnabled = localStorage.loadEnabledState()
+                isServiceEnabled = isServiceEnabled
             )
         )
+        toggleServiceEnabled(isServiceEnabled)
     }
 
 
@@ -53,6 +56,7 @@ class MainScreenViewModel(private val connection: MonitoringServiceConnection) :
     }
 
     fun toggleServiceEnabled(isEnabled: Boolean) {
+        Timber.d("Toggling ServiceEnabled: $isEnabled")
         connection.monitoringService?.let {
             it.isEnabled = isEnabled
             localStorage.saveEnabledState(isEnabled = isEnabled)

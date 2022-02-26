@@ -39,12 +39,17 @@ class MonitoringService : Service(), KoinComponent {
     var serviceState = ServiceState.STOPPED
     var wifiStateListener: ((MonitoringState) -> Unit)? = null
 
+    /**
+     * Always call this one first before doing anything else with the service
+     */
     fun initService() {
         initKoinModule()
+        Timber.d("initService, state: $serviceState, enabmled: $isEnabled")
         if (isEnabled && serviceState != ServiceState.RUNNING) startService()
     }
 
     private fun startService() {
+        Timber.d("Start Service")
         startService(Intent(applicationContext, MonitoringService::class.java))
         serviceState = ServiceState.RUNNING
     }

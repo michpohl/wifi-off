@@ -28,7 +28,7 @@ class MonitoringLooper(
             onStateChanged(value)
         }
 
-    suspend fun loop() {
+    private suspend fun loop() {
         Timber.d("\n***\nloop\n***")
         if (shouldStop) return
         // first we check if wifi is on
@@ -84,6 +84,7 @@ class MonitoringLooper(
                     connectedWifi = null
                 )
             } else {
+
                 currentState.copy(
                     lastChecked = now,
                     instruction = WifiInstruction.WAIT,
@@ -93,7 +94,8 @@ class MonitoringLooper(
         } ?: run {
             // in case there is no lastConnected timeStamp, we set it now,
             // so we can calculate our times on the next go
-            currentState.copy(
+            Timber.d("No lastConnected")
+            currentState = currentState.copy(
                 lastChecked = now,
                 lastConnected = now,
                 instruction = WifiInstruction.WAIT,
@@ -193,10 +195,10 @@ class MonitoringLooper(
     companion object {
 
         // all the default values
-        const val DEFAULT_SCAN_INTERVAL_MILLIS = (1 * 10 * 100).toLong()
-        const val DEFAULT_TURN_OFF_THRESHOLD_MILLIS = (1 * 60 * 500).toLong()
-        const val DEFAULT_TURN_ON_THRESHOLD_MILLIS = (1 * 60 * 500).toLong()
-        const val DEFAULT_TURNED_OFF_MIN_THRESHOLD_MILLIS = (1 * 60 * 100).toLong()
+        const val DEFAULT_SCAN_INTERVAL_MILLIS = (1 * 10 * 1000).toLong()
+        const val DEFAULT_TURN_OFF_THRESHOLD_MILLIS = (1 * 20 * 1000).toLong()
+        const val DEFAULT_TURN_ON_THRESHOLD_MILLIS = (1 * 20 * 1000).toLong()
+        const val DEFAULT_TURNED_OFF_MIN_THRESHOLD_MILLIS = (1 * 5 * 1000).toLong()
     }
 }
 

@@ -35,7 +35,7 @@ class CommandRunner {
     fun isWithinReachOfKnownCellTowers(cellIDs: List<String>): Boolean {
         var result = false
         val command: String? = runShellCommand(ShellCommand.CHECK_CELL_TOWERS_COMMAND)
-//        Timber.d("Command: $command")
+        Timber.d("Command: $command")
 
         cellIDs.forEach { if (command?.contains(it) == true) result = true }
         Timber.d("Check cell towers result: $result")

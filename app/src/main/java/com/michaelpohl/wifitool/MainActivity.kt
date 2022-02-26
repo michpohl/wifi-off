@@ -24,6 +24,7 @@ class MainActivity : ComponentActivity() {
         onServiceConnectedListener = {
             Timber.d("Connected!")
             it.getService().wifiStateListener = { state -> onMonitoringStateChanged(state) }
+            viewModel.getSavedWifis()
         }
     }
 
@@ -37,6 +38,7 @@ class MainActivity : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
                     viewModel = MainScreenViewModelFactory(serviceConnection).build()
+                    Timber.d("ViewModel is initialized")
                     MainScreen(viewModel)
                 }
             }
