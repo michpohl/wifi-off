@@ -58,6 +58,6 @@ dependencies {
     api("androidx.compose.material:material:${composeVersion}")
     api("androidx.compose.ui:ui-tooling:${composeVersion}")
     api("androidx.compose.runtime:runtime-livedata:${composeVersion}")
-    api("androidx.lifecycle:lifecycle-viewmodel-compose:2.4.0")
+    api("androidx.lifecycle:lifecycle-viewmodel-compose:2.4.1")
 }
 
