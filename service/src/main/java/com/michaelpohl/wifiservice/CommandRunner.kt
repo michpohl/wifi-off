@@ -28,16 +28,18 @@ class CommandRunner {
 
 //            Timber.d("cellid: $cellTowerId")
 //            Timber.d("regex: $idMatch")
-            WifiData(splitString[1], idMatch)
+            // TODO check if this is enough and how we best compare this to saved wifis with multiple cellIDs
+            WifiData(splitString[1], listOf(idMatch))
         }
     }
 
-    fun isWithinReachOfKnownCellTowers(cellIDs: List<String>): Boolean {
+    fun isWithinReachOfKnownCellTowers(wifis: List<WifiData>): Boolean {
         var result = false
         val command: String? = runShellCommand(ShellCommand.CHECK_CELL_TOWERS_COMMAND)
+        val possibleCellIDs = mutableListOf<String>()
         Timber.d("Command: $command")
-
-        cellIDs.forEach { if (command?.contains(it) == true) result = true }
+        wifis.forEach { possibleCellIDs.addAll(it.cellIDs) }
+        possibleCellIDs.forEach { if (command?.contains(it) == true) result = true }
         Timber.d("Check cell towers result: $result")
         return result
     }

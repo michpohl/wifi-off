@@ -28,7 +28,7 @@ fun SavedWifiEntry(
         verticalAlignment = Alignment.CenterVertically
     ) {
         val ssidText = stringResource(id = R.string.saved_wifi_ssid, wifi.ssid)
-        val cellIDText = stringResource(id = R.string.saved_wifi_connected_cell_id, wifi.cellID)
+        val cellIDText = stringResource(id = R.string.saved_wifi_connected_cell_id, wifi.cellIDs)
 
         Column {
             Text(text = ssidText, textAlign = TextAlign.Start)
@@ -49,5 +49,5 @@ fun SavedWifiEntry(
 @Preview
 @Composable
 fun ComposablePreview() {
-    SavedWifiEntry(wifi = WifiData("some ssid", "4354678")) {}
+    SavedWifiEntry(wifi = WifiData("some ssid", listOf("4354678", "435355"))) {}
 }

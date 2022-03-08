@@ -140,7 +140,7 @@ class MonitoringLooper(
     private fun handlePastWifiOffThreshold() {
         Timber.d("HandlePastWifiOffThreshold")
         val isConnectedToKnownCell =
-            commandRunner.isWithinReachOfKnownCellTowers(localStorageRepo.savedKnownWifis.wifis.map { it.cellID })
+            commandRunner.isWithinReachOfKnownCellTowers(localStorageRepo.savedKnownWifis.wifis)
         if (isConnectedToKnownCell) {
             handleConnectedToKnownCell()
         } else {

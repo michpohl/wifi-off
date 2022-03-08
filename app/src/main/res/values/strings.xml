@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">Wifi-Off</string>
     <string name="current_wifi_info">Current connected Wifi: %s</string>
-    <string name="current_cell_info">Current close CellTower ID: %s</string>
+    <string name="wifi_known_close_cells">Known close CellTower IDs: %s</string>
     <string name="saved_wifi_ssid">SSID: %s</string>
-    <string name="saved_wifi_connected_cell_id">Cell ID: %s</string>
+    <string name="saved_wifi_connected_cell_id">Known Cell IDs: %s</string>
     <string name="last_connected_info">Last time connected: %s</string>
     <string name="unknown">Unknown</string>
     <string name="btn_save_current_wifi">Save Current Wifi</string>

@@ -10,11 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.michaelpohl.design.util.appColors
-import com.michaelpohl.design.util.appTextStyles
-import com.michaelpohl.wifiservice.looper.WifiSituation
 import com.michaelpohl.wifiservice.looper.WifiSituation.*
 import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifitool.R
@@ -36,8 +33,8 @@ fun StatusInfo(
             state.currentConnectedWifi?.ssid ?: stringResource(id = R.string.unknown)
         )
         val cellText = stringResource(
-            R.string.current_cell_info,
-            state.currentConnectedWifi?.cellID ?: stringResource(id = R.string.unknown)
+            R.string.wifi_known_close_cells,
+            state.currentConnectedWifi?.cellIDs ?: stringResource(id = R.string.unknown)
         )
         Text(text = state.wifiSituation.asString(LocalContext.current), Modifier.padding(16.dp),)
         Text(text = ssidText, Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp))

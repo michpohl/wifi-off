@@ -5,7 +5,7 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class WifiData(
     val ssid: String,
-    val cellID: String
+    val cellIDs: List<String>
 )
 
 @JsonClass(generateAdapter = true)
