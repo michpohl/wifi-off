@@ -2,9 +2,20 @@
     <string name="app_name">Wifi-Off</string>
     <string name="current_wifi_info">Current connected Wifi: %s</string>
     <string name="current_cell_info">Current close CellTower ID: %s</string>
+    <string name="saved_wifi_ssid">SSID: %s</string>
+    <string name="saved_wifi_connected_cell_id">Cell ID: %s</string>
     <string name="last_connected_info">Last time connected: %s</string>
     <string name="unknown">Unknown</string>
     <string name="btn_save_current_wifi">Save Current Wifi</string>
     <string name="saved_wifis_info">Saved Wifis</string>
     <string name="btn_delete_wifi">Delete</string>
+    <string name="logs_header">Logs</string>
+    <string name="saved_wifis_header">Saved Wifi SSIDs:</string>
+    <string name="enabled">enabled</string>
+    <string name="disabled">disabled</string>
+    <string name="wifi_monitoring_status_prefix">Wifi monitoring is %s</string>
+    <string name="wifi_situation_on">Wifi is on</string>
+    <string name="wifi_situation_connected">Connected to a Wifi network</string>
+    <string name="wifi_situation_off">Wifi is off</string>
+    <string name="wifi_situation_unknown">Wifi status currently unknown</string>
 </resources>

@@ -9,7 +9,9 @@ data class MainScreenState(
     val currentConnectedWifi: WifiData? = null,
     val timberMessages: StringBuffer = StringBuffer(),
     val wifiSituation: WifiSituation = WifiSituation.UNKNOWN,
-    val isServiceEnabled: Boolean = false
+    val isServiceEnabled: Boolean = false,
+    val showSavedWifis: Boolean = false,
+    val showLogs: Boolean = false
 ) {
     val isInitialState = wifis.wifis.isEmpty() && currentConnectedWifi == null
     val isCurrentWifiAlreadySaved = wifis.wifis.contains(currentConnectedWifi)

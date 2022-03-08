@@ -55,6 +55,15 @@ class MainScreenViewModel(private val connection: MonitoringServiceConnection) :
         }))
     }
 
+    fun toggleShowSavedWifis(shouldShow: Boolean) {
+        updateState(currentState.copy(showSavedWifis = shouldShow))
+    }
+
+    fun toggleShowLogs(shouldShow: Boolean) {
+        Timber.d("ShouldShow: $shouldShow")
+        updateState(currentState.copy(showLogs = shouldShow))
+    }
+
     fun toggleServiceEnabled(isEnabled: Boolean) {
         Timber.d("Toggling ServiceEnabled: $isEnabled")
         connection.monitoringService?.let {

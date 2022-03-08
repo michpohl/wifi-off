@@ -5,5 +5,9 @@ import com.michaelpohl.wifiservice.looper.MonitoringState
 import org.koin.dsl.module
 
 val serviceModule = module {
-    single { (onStateChanged: (MonitoringState) -> Unit) -> MonitoringLooper(get(), get(), onStateChanged) }
+    single { (onStateChanged: (MonitoringState) -> Unit) ->
+        MonitoringLooper(get(), get(), onStateChanged)
+    }
 }
+
+const val SHARED_PREFS_KEY = "wifitoolprefs"

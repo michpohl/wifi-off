@@ -19,15 +19,15 @@ fun MainScreen(viewModel: MainScreenViewModel) {
 
     val state by stateFlow.collectAsState(MainScreenState())
 
-    if (state.isInitialState) {
-//        viewModel.getSavedWifis()
-    }
-
     Column {
         MainToggle(state) { viewModel.toggleServiceEnabled(it) }
         StatusInfo(state) { viewModel.saveWifi(it) }
-        SavedWifiList(state) { viewModel.deleteWifi(it) }
-        LogList(state)
+        SavedWifiList(
+            state = state,
+            onExpandClicked = {viewModel.toggleShowSavedWifis(it)},
+            onDeleteWifiClicked = { viewModel.deleteWifi(it) }
+        )
+        LogList(state) {viewModel.toggleShowLogs(it)}
     }
 }
 
