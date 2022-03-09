@@ -23,12 +23,15 @@ fun SavedWifiEntry(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(all = 16.dp),
+            .padding(start = 16.dp, top = 16.dp, end = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         val ssidText = stringResource(id = R.string.saved_wifi_ssid, wifi.ssid)
-        val cellIDText = stringResource(id = R.string.saved_wifi_connected_cell_id, wifi.cellIDs)
+        val cellIDText = stringResource(
+            id = R.string.saved_wifi_connected_cell_id,
+            wifi.cellIDs.joinToString("', ")
+        )
 
         Column {
             Text(text = ssidText, textAlign = TextAlign.Start)

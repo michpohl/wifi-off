@@ -12,7 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.michaelpohl.design.util.appColors
-import com.michaelpohl.wifiservice.looper.WifiSituation.*
+import com.michaelpohl.design.util.appTextStyles
 import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifitool.R
 import com.michaelpohl.wifitool.common.util.asString
@@ -28,17 +28,34 @@ fun StatusInfo(
             .fillMaxWidth()
             .background(color = appColors.background)
     ) {
-        val ssidText = stringResource(
-            R.string.current_wifi_info,
-            state.currentConnectedWifi?.ssid ?: stringResource(id = R.string.unknown)
+
+        val ssidText = state.currentConnectedWifi?.ssid ?: stringResource(id = R.string.unknown)
+
+        val cellText = state.currentConnectedWifi?.cellIDs?.joinToString(", ")
+            ?: stringResource(id = R.string.unknown)
+
+        Text(
+            text = state.wifiSituation.asString(LocalContext.current),
+            Modifier.padding(16.dp),
+            style = appTextStyles.h2
         )
-        val cellText = stringResource(
-            R.string.wifi_known_close_cells,
-            state.currentConnectedWifi?.cellIDs ?: stringResource(id = R.string.unknown)
-        )
-        Text(text = state.wifiSituation.asString(LocalContext.current), Modifier.padding(16.dp),)
-        Text(text = ssidText, Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp))
-        Text(text = cellText, Modifier.padding(start = 16.dp, bottom = 16.dp, end = 16.dp)     )
+        Column(Modifier.padding(all = 16.dp)) {
+            Text(
+                text = stringResource(id = R.string.current_wifi_info),
+                style = appTextStyles.subtitle1
+            )
+            Text(
+                text = ssidText, style = appTextStyles.body2
+            )
+            Text(
+                text = stringResource(id = R.string.wifi_known_close_cells),
+                style = appTextStyles.subtitle1,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+            Text(
+                text = cellText, style = appTextStyles.body2
+            )
+        }
 
         state.currentConnectedWifi?.let {
             if (!state.isCurrentWifiAlreadySaved) {

@@ -8,7 +8,7 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 
 /**
- * Theme data for DeezerViewer. This theme definition deviates slightly
+ * This theme definition deviates slightly
  * from the Material standard by using a custom class [AppColors] for color
  * definitions. This way the colors can be given more meaningful names
  */
@@ -35,14 +35,14 @@ val MaterialTheme.appColors: AppColors
     get() = LocalColors.current
 
 @Composable
-fun DeezerViewerTheme(
+fun WifiTheme(
     content: @Composable () -> Unit,
 ) {
     val colors = DeezerViewerColorPalette
     CompositionLocalProvider(LocalColors provides colors) {
         MaterialTheme(
             colors = colors.material,
-            typography = Typography,
+            typography = AppFontStyles,
             shapes = Shapes,
             content = content
         )

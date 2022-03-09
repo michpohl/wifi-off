@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.michaelpohl.design.theme.WifiTheme
 import com.michaelpohl.wifiservice.MonitoringService
 import com.michaelpohl.wifiservice.MonitoringServiceConnection
 import com.michaelpohl.wifiservice.looper.MonitoringState
@@ -34,7 +35,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            WifiToolTheme {
+            WifiTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
                     viewModel = MainScreenViewModelFactory(serviceConnection).build()

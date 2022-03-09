@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.michaelpohl.design.util.appColors
+import com.michaelpohl.design.util.appTextStyles
 import com.michaelpohl.wifitool.R
 
 @Composable
@@ -33,7 +34,9 @@ fun ExpandableHeader(
             if (shouldShowContent) R.drawable.baseline_expand_less_24 else R.drawable.baseline_expand_more_24
         Text(
             text = headerText,
-            modifier = Modifier.padding(all = 16.dp)
+            modifier = Modifier.padding(all = 16.dp),
+            style = appTextStyles.h2
+
         )
         Image(
             painter = painterResource(id = iconId),

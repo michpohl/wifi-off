@@ -30,7 +30,7 @@ fun MainToggle(
         val enabledText = stringResource(if (isEnabled) R.string.enabled else R.string.disabled)
         Text(
             text = stringResource(id = R.string.wifi_monitoring_status_prefix, enabledText),
-            style = appTextStyles.h6,
+            style = appTextStyles.h1,
             modifier = Modifier.align(
                 Alignment.CenterVertically
             )
