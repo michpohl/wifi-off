@@ -59,12 +59,26 @@ class MonitoringLooper(
 
     // if connected to a known ssid, we update our timestamps and instruct to WAIT
     private fun handleConnectedToWifi() {
+        // TODO clean this up once logic is sound
+        val currentConnectedWifi = getCurrentConnectedWifi()
+        val wifiToReturn = currentConnectedWifi?.let { current ->
+            var savedCopy = localStorageRepo.savedKnownWifis.wifis.find { it.ssid == current.ssid }
+            if (savedCopy != null) {
+                if (!savedCopy.cellIDs.containsAll(current.cellIDs)) {
+                    val newCellIds = (savedCopy.cellIDs + current.cellIDs).distinct()
+                    savedCopy = current.copy(cellIDs = newCellIds)
+                    localStorageRepo.saveWifi(savedCopy)
+                }
+            }
+            savedCopy
+        }
+
         Timber.d("HandleConnectedToWifi")
         currentState = currentState.copy(
             lastChecked = now,
             lastConnected = now,
             instruction = WifiInstruction.WAIT,
-            connectedWifi = getCurrentConnectedWifi()
+            connectedWifi = wifiToReturn
         )
     }
 
