@@ -140,9 +140,10 @@ class MonitoringService : Service(), KoinComponent {
     // if the user wants to end the service from the notification, this gets executed
     private fun handleNotificationStopClicked(intent: Intent?) {
         if (intent?.getBooleanExtra(DID_START_FROM_NOTIFICATION, false) == true) {
-//            CoroutineScope(Dispatchers.Default).launch {
-//                binder.stop()
-//            }
+            Timber.d("Stop")
+            looper.stopPermanently()
+            stopForeground(true)
+            stopSelf()
         }
     }
 

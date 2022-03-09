@@ -35,6 +35,8 @@ android {
 
 dependencies {
 
+    implementation project(":design")
+
     // Logging
     api 'com.jakewharton.timber:timber:4.7.1'
 
@@ -48,7 +50,7 @@ dependencies {
     api "io.insert-koin:koin-androidx-compose:3.1.4"
 
     // Moshi JSON handling
-    api "com.squareup.moshi:moshi:1.12.0"
+    api "com.squareup.moshi:moshi:1.13.0"
     api "com.squareup.moshi:moshi-adapters:1.12.0"
     api "dev.zacsweers.moshix:moshi-sealed-runtime:0.14.1"
 

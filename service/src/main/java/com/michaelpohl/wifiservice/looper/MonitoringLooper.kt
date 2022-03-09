@@ -206,6 +206,11 @@ class MonitoringLooper(
         shouldStop = true
     }
 
+    fun stopPermanently() {
+        stop()
+        localStorageRepo.saveEnabledState(false)
+    }
+
     companion object {
 
         // all the default values

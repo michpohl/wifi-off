@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="service_notification_title">Wifi-Off monitoring is active</string>
+    <string name="service_notification_buttonOopen">Open App</string>
+    <string name="service_notification_button_stop">Stop Monitoring</string>
+</resources>

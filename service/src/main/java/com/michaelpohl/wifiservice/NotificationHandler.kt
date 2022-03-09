@@ -8,6 +8,8 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import timber.log.Timber
+import com.michaelpohl.design.R as design
+
 
 class NotificationHandler {
 
@@ -30,33 +32,25 @@ class NotificationHandler {
 
         val builder =
             NotificationCompat.Builder(context, MonitoringService.NOTIFICATION_CHANNEL_ID)
-                .addAction(0, "open", activityPendingIntent)
-                .addAction(0, "stop", servicePendingIntent)
-                .setContentTitle("title")
+                .addAction(0, context.getString(R.string.service_notification_buttonOopen), activityPendingIntent)
+                .addAction(0, context.getString(R.string.service_notification_button_stop), servicePendingIntent)
+                .setContentTitle( context.getString(R.string.service_notification_title))
                 .setOngoing(true)
 
-                .setPriority(
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        NotificationManager.IMPORTANCE_LOW
-                    } else {
-                        Notification.FLAG_ONGOING_EVENT
-                    }
+                .setPriority(NotificationManager.IMPORTANCE_LOW
                 )
-//                .setSmallIcon(shared.drawable.ic_service_logo)
+                .setSmallIcon(design.drawable.baseline_check_24)
                 .setWhen(System.currentTimeMillis())
 
-        // if Android O or higher, we need a channel ID
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createChannel(context)
             builder.setChannelId(MonitoringService.NOTIFICATION_CHANNEL_ID) // Channel ID
-        }
         return builder.build()
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createChannel(context: Context) {
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val description = "title"
+        val description = "wifi-off"
 
         val channel = NotificationChannel(
             MonitoringService.NOTIFICATION_CHANNEL_ID,
