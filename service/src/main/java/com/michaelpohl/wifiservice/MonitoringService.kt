@@ -91,7 +91,7 @@ class MonitoringService : Service(), KoinComponent {
     private fun setupNotification() {
         notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         NotificationChannel(
-            NOTIFICATION_CHANNEL_ID, "here be app name", // TODO
+            NOTIFICATION_CHANNEL_ID, TAG, // TODO
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
             notificationManager.createNotificationChannel(this)
@@ -133,14 +133,9 @@ class MonitoringService : Service(), KoinComponent {
         stopSelf()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
     // if the user wants to end the service from the notification, this gets executed
     private fun handleNotificationStopClicked(intent: Intent?) {
         if (intent?.getBooleanExtra(DID_START_FROM_NOTIFICATION, false) == true) {
-            Timber.d("Stop")
             looper.stopPermanently()
             stopForeground(true)
             stopSelf()
@@ -149,14 +144,12 @@ class MonitoringService : Service(), KoinComponent {
 
     // TODO let's see if this is the smartest way...
     inner class ServiceBinder : MonitoringServiceBinder() {
-
         fun getService(): MonitoringService {
             return this@MonitoringService
         }
     }
 
     companion object {
-
         // TODO check which places these should go to
         private val TAG = MonitoringService::class.java.simpleName
         const val NOTIFICATION_CHANNEL_ID = "loopy_channel"

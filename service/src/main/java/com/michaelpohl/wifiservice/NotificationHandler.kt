@@ -39,7 +39,7 @@ class NotificationHandler {
 
                 .setPriority(NotificationManager.IMPORTANCE_LOW
                 )
-                .setSmallIcon(design.drawable.baseline_check_24)
+                .setSmallIcon(design.drawable.ic_wifi_eye_icon)
                 .setWhen(System.currentTimeMillis())
 
             createChannel(context)
