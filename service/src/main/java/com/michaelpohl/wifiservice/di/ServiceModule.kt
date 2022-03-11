@@ -2,11 +2,12 @@ package com.michaelpohl.wifiservice.di
 
 import com.michaelpohl.wifiservice.looper.MonitoringLooper
 import com.michaelpohl.wifiservice.looper.MonitoringState
+import com.michaelpohl.wifiservice.looper.TimingThresholds
 import org.koin.dsl.module
 
 val serviceModule = module {
     single { (onStateChanged: (MonitoringState) -> Unit) ->
-        MonitoringLooper(get(), get(), onStateChanged)
+        MonitoringLooper(get(), get(), TimingThresholds(), onStateChanged)
     }
 }
 
