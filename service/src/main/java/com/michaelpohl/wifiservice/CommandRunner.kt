@@ -19,18 +19,25 @@ class CommandRunner {
         // The regex works, but we don't need it at this point
 //        Timber.d("ssid regex: ${ssidRegex.find(ssidString ?: "")?.groups?.get(0)?.value}")
 
-        val cellTowerId = runShellCommand(ShellCommand.CHECK_CELL_TOWERS_COMMAND)
-        return cellTowerId?.let {
-            var idMatch = ""
-            cellTowerRegex.find(cellTowerId)?.groups?.get(0)?.apply {
-                this.value.forEach { if (it.isDigit()) idMatch = idMatch.plus(it) }
-            }
-
-//            Timber.d("cellid: $cellTowerId")
-//            Timber.d("regex: $idMatch")
-            // TODO check if this is enough and how we best compare this to saved wifis with multiple cellIDs
-            WifiData(splitString[1], listOf(idMatch))
+        val cellTowerID = runShellCommand(ShellCommand.CHECK_CELL_TOWERS_COMMAND)
+        return cellTowerID?.let {
+            compareCellTowerID(it, splitString)
         }
+    }
+
+    private fun compareCellTowerID(
+        cellTowerId: String,
+        splitString: List<String>
+    ): WifiData {
+        var idMatch = ""
+        cellTowerRegex.find(cellTowerId)?.groups?.get(0)?.apply {
+            this.value.forEach { if (it.isDigit()) idMatch = idMatch.plus(it) }
+        }
+
+        //            Timber.d("cellid: $cellTowerId")
+        //            Timber.d("regex: $idMatch")
+        // TODO check if this is enough and how we best compare this to saved wifis with multiple cellIDs
+        return WifiData(splitString[1], listOf(idMatch))
     }
 
     fun isWithinReachOfKnownCellTowers(wifis: List<WifiData>): Boolean {
@@ -76,7 +83,7 @@ class CommandRunner {
 
         private const val wifiConnectionString = "networkId=\""
 
-        private val ssidRegex = """=".*",""".toRegex()
+        //        private val ssidRegex = """=".*",""".toRegex()
         private val cellTowerRegex = """mCi=[0-9]*""".toRegex()
 
         private fun runShellCommand(command: String): String? {
@@ -94,7 +101,7 @@ class CommandRunner {
     }
 }
 
-class ShellCommand {
+class ShellCommand private constructor() {
     companion object {
 
         const val CHECK_CELL_TOWERS_COMMAND = "su -c dumpsys telephony.registry | grep \"mCi=\" -m1"
@@ -104,4 +111,5 @@ class ShellCommand {
         const val CHECK_WIFI_ON = "su -c settings get global wifi_on"
     }
 }
+
 

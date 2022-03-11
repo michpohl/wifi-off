@@ -22,6 +22,7 @@ subprojects {
     }
 
     detekt {
+        autoCorrect = true
         config = rootProject.files("config/detekt/detekt.yml")
     }
 }

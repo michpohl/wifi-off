@@ -60,10 +60,9 @@ fun StatusInfo(
         state.currentConnectedWifi?.let {
             if (!state.isCurrentWifiAlreadySaved) {
                 Button(onClick = { onSaveWifiClicked(it) }, Modifier.padding(all = 16.dp)) {
-                    Text(text = stringResource(R.string.btn_save_current_wifi))
-                }
+                Text(text = stringResource(R.string.btn_save_current_wifi))
+            }
             }
         }
     }
-
 }

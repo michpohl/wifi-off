@@ -10,7 +10,6 @@ import androidx.core.app.NotificationCompat
 import timber.log.Timber
 import com.michaelpohl.design.R as design
 
-
 class NotificationHandler {
 
     @SuppressLint("UnspecifiedImmutableFlag")
@@ -27,23 +26,31 @@ class NotificationHandler {
         )
         // resume activity intent
         val activityPendingIntent = PendingIntent.getActivity(
-            context, 1321, Intent(context, activityClass), PendingIntent.FLAG_UPDATE_CURRENT
+            context, REQUEST_CODE, Intent(context, activityClass), PendingIntent.FLAG_UPDATE_CURRENT
         )
 
         val builder =
             NotificationCompat.Builder(context, MonitoringService.NOTIFICATION_CHANNEL_ID)
-                .addAction(0, context.getString(R.string.service_notification_buttonOopen), activityPendingIntent)
-                .addAction(0, context.getString(R.string.service_notification_button_stop), servicePendingIntent)
-                .setContentTitle( context.getString(R.string.service_notification_title))
+                .addAction(
+                    0,
+                    context.getString(R.string.service_notification_buttonOopen),
+                    activityPendingIntent
+                )
+                .addAction(
+                    0,
+                    context.getString(R.string.service_notification_button_stop),
+                    servicePendingIntent
+                )
+                .setContentTitle(context.getString(R.string.service_notification_title))
                 .setOngoing(true)
-
-                .setPriority(NotificationManager.IMPORTANCE_LOW
+                .setPriority(
+                    NotificationManager.IMPORTANCE_LOW
                 )
                 .setSmallIcon(design.drawable.ic_wifi_eye_icon)
                 .setWhen(System.currentTimeMillis())
 
-            createChannel(context)
-            builder.setChannelId(MonitoringService.NOTIFICATION_CHANNEL_ID) // Channel ID
+        createChannel(context)
+        builder.setChannelId(MonitoringService.NOTIFICATION_CHANNEL_ID) // Channel ID
         return builder.build()
     }
 
@@ -63,5 +70,9 @@ class NotificationHandler {
                 this.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             }
         manager.createNotificationChannel(channel)
+    }
+
+    companion object {
+        const val REQUEST_CODE = 1221
     }
 }

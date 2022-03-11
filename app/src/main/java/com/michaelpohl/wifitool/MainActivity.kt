@@ -62,10 +62,6 @@ class MainActivity : ComponentActivity() {
         Timber.d("Timber is on")
     }
 
-    private fun showToast(it: String) {
-        Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
-    }
-
     override fun onResume() {
         super.onResume()
         initTimber()

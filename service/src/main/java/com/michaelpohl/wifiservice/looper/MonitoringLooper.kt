@@ -212,41 +212,10 @@ class MonitoringLooper(
     }
 
     companion object {
-
         // all the default values
-        const val DEFAULT_SCAN_INTERVAL_MILLIS = (1 * 10 * 1000).toLong()
-        const val DEFAULT_TURN_OFF_THRESHOLD_MILLIS = (1 * 20 * 1000).toLong()
-        const val DEFAULT_TURN_ON_THRESHOLD_MILLIS = (1 * 20 * 1000).toLong()
-        const val DEFAULT_TURNED_OFF_MIN_THRESHOLD_MILLIS = (1 * 5 * 1000).toLong()
+        const val DEFAULT_SCAN_INTERVAL_MILLIS = (3 * 60 * 1000).toLong()
+        const val DEFAULT_TURN_OFF_THRESHOLD_MILLIS = (3.5 * 60 * 1000).toLong()
+        const val DEFAULT_TURN_ON_THRESHOLD_MILLIS = (3.5 * 60 * 1000).toLong()
+        const val DEFAULT_TURNED_OFF_MIN_THRESHOLD_MILLIS = (7 * 60 * 1000).toLong()
     }
 }
-
-data class MonitoringState(
-    val lastChecked: Long? = null,
-    val lastConnected: Long? = null,
-    val wifiTurnedOffAt: Long? = null,
-    val firstCellSeen: Long? = null,
-    val connectedToKnownCell: Boolean = false,
-    val isWifiOn: Boolean = false,
-    val instruction: WifiInstruction = WifiInstruction.WAIT,
-    val connectedWifi: WifiData? = null
-) {
-    val wifiSituation: WifiSituation = when {
-        connectedWifi != null -> WifiSituation.WIFI_CONNECTED
-        isWifiOn -> WifiSituation.WIFI_ON
-        else -> WifiSituation.WIFI_OFF
-    }
-}
-
-enum class PhonePosition {
-    CLOSE_TO_KNOWN_WIFI, AWAY_FROM_KNOWN_WIFI, UNKNOWN
-}
-
-enum class WifiInstruction {
-    TURN_OFF, TURN_ON, WAIT
-}
-
-enum class WifiSituation {
-    WIFI_ON, WIFI_CONNECTED, WIFI_OFF, UNKNOWN
-}
-

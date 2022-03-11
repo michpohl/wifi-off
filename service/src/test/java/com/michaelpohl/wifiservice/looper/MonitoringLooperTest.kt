@@ -1,30 +1,16 @@
 package com.michaelpohl.wifiservice.looper
+
 //
-//import com.michaelpohl.wifiservice.CommandRunner
-//import com.michaelpohl.wifiservice.changePrivatePropertyTo
+
+import junit.framework.TestCase
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+
 //
-//import com.michaelpohl.wifiservice.looper.MonitoringState
-//import com.michaelpohl.wifiservice.model.WifiData
-//import com.michaelpohl.wifiservice.model.WifiList
-//import com.michaelpohl.wifiservice.storage.LocalStorage
-//import io.mockk.clearAllMocks
-//import io.mockk.every
-//import io.mockk.mockk
-//import io.mockk.mockkObject
-//import junit.framework.TestCase
-//import kotlinx.coroutines.ExperimentalCoroutinesApi
-//import kotlinx.coroutines.launch
-//import kotlinx.coroutines.test.runBlockingTest
-//import org.junit.After
-//import org.junit.Before
-//import org.junit.Test
-//import org.junit.runner.RunWith
-//import org.junit.runners.JUnit4
-//import java.util.*
-//
-//@ExperimentalCoroutinesApi
-//@RunWith(JUnit4::class)
-//class MonitoringLooperTest : TestCase() {
+@ExperimentalCoroutinesApi
+@RunWith(JUnit4::class)
+class MonitoringLooperTest : TestCase()
 //
 //    private lateinit var looper: MonitoringLooper
 //    private lateinit var storage: LocalStorage
@@ -72,11 +58,14 @@ package com.michaelpohl.wifiservice.looper
 //        }
 //
 //    @Test
-//    fun `if wifi is on, but no valid SSID around, change instruction to WAIT if threshold is not met`() = runBlockingTest {
+//    fun `if wifi is on, but no valid SSID around, change instruction to WAIT if threshold is not
+//    met`() = runBlockingTest {
 //        // given
-//        val dummyWifiList = WifiList(listOf(WifiData("ssid1", "cellId1"), WifiData("ssid2", "cellId2")))
+//        val dummyWifiList = WifiList(listOf(WifiData("ssid1", "cellId1"), WifiData("ssid2", ]
+//        "cellId2")))
 //        every { storage.savedKnownWifis } returns dummyWifiList
-//        every { commandRunner.isConnectedToAnyValidSSIDs(dummyWifiList.wifis.map { it.ssid }) } returns true
+//        every { commandRunner.isConnectedToAnyValidSSIDs(dummyWifiList.wifis.map { it.ssid }) } \]
+//        returns true
 //        every { commandRunner.isWifiOn() } returns true
 //
 //        val now = Date().time
@@ -179,7 +168,8 @@ package com.michaelpohl.wifiservice.looper
 //        }
 //
 //    @Test
-//    fun `if wifi is off and within reach of known cell, set state instruction to TURN_ON if interval is big enough`() =
+//    fun `if wifi is off and within reach of known cell, set state instruction to TURN_ON if i
+//    nterval is big enough`() =
 //        runBlockingTest {
 //            // given
 //            val dummyWifiList = WifiList(listOf(WifiData("ssid1", "cellId1"), WifiData("ssid2", "cellId2")))
@@ -207,7 +197,8 @@ package com.michaelpohl.wifiservice.looper
 //        }
 //
 //    @Test
-//    fun `if wifi is off and within reach of known cell, set state instruction to WAIT if interval is not big enough`() =
+//    fun `if wifi is off and within reach of known cell, set state instruction to WAIT if interval
+//    is not big enough`() =
 //        runBlockingTest {
 //            // given
 //            val dummyWifiList = WifiList(listOf(WifiData("ssid1", "cellId1"), WifiData("ssid2", "cellId2")))
@@ -236,4 +227,4 @@ package com.michaelpohl.wifiservice.looper
 //    private fun setLooperState(state: State) {
 //        looper.changePrivatePropertyTo("currentState", state)
 //    }
-//}
+// }
