@@ -3,6 +3,7 @@ package com.michaelpohl.wifiservice.looper
 import com.michaelpohl.wifiservice.CommandRunner
 import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifiservice.storage.LocalStorage
+import com.squareup.moshi.JsonClass
 import kotlinx.coroutines.delay
 import timber.log.Timber
 import java.util.*
@@ -11,13 +12,9 @@ class MonitoringLooper(
     private val commandRunner: CommandRunner,
     private val localStorageRepo: LocalStorage,
     val onStateChanged: (MonitoringState) -> Unit,
+    val thresholds: TimingThresholds = TimingThresholds()
+
 ) {
-
-    var scanInterval = DEFAULT_SCAN_INTERVAL_MILLIS
-    var turnOffThreshold = DEFAULT_TURN_OFF_THRESHOLD_MILLIS
-    var turnOnThreshold = DEFAULT_TURN_ON_THRESHOLD_MILLIS
-    var turnedOffMinThreshold = DEFAULT_TURNED_OFF_MIN_THRESHOLD_MILLIS
-
     private var shouldStop = false
     private var now = 0L
 
@@ -27,6 +24,23 @@ class MonitoringLooper(
             field = value
             onStateChanged(value)
         }
+
+
+
+    suspend fun start() {
+        shouldStop = false
+        loop()
+    }
+
+    fun stop() {
+        println("stop")
+        shouldStop = true
+    }
+
+    fun stopPermanently() {
+        stop()
+        localStorageRepo.saveEnabledState(false)
+    }
 
     private suspend fun loop() {
         Timber.d("\n***\nloop\n***")
@@ -38,7 +52,7 @@ class MonitoringLooper(
         } else {
             handleWifiOff()
         }
-        delay(scanInterval)
+        delay(thresholds.scanInterval)
         loop()
     }
 
@@ -89,7 +103,7 @@ class MonitoringLooper(
         Timber.d("HandleNotConnectedToWifi")
         // check threshold, disconnect if qualified
         currentState.lastConnected?.let { lastConnectedTime ->
-            currentState = if (now - turnOffThreshold > lastConnectedTime) {
+            currentState = if (now - thresholds.turnOffThreshold > lastConnectedTime) {
                 Timber.d("Turning wifi off, past threshold")
                 currentState.copy(
                     lastChecked = now,
@@ -128,8 +142,8 @@ class MonitoringLooper(
         Timber.d("HandleWifiOff")
         // if turnedOffThreshold passed
         currentState.wifiTurnedOffAt?.let {
-            Timber.d("Difference: ${now - turnedOffMinThreshold - it}")
-            if (now - turnedOffMinThreshold > it) {
+            Timber.d("Difference: ${now - thresholds.turnedOffMinThreshold - it}")
+            if (now - thresholds.turnedOffMinThreshold > it) {
                 handlePastWifiOffThreshold()
             } else {
                 currentState = currentState.copy(
@@ -173,7 +187,7 @@ class MonitoringLooper(
         Timber.d("HandleConnectedToKnownCell")
         currentState.wifiTurnedOffAt?.let { wifiTurnedOffTime ->
 
-            if (now - turnOnThreshold > wifiTurnedOffTime) {
+            if (now - thresholds.turnOnThreshold > wifiTurnedOffTime) {
                 Timber.d("Past threshold, turning wifi on")
                 currentState =
                     currentState.copy(
@@ -196,21 +210,6 @@ class MonitoringLooper(
         return commandRunner.getCurrentConnectedWifi()
     }
 
-    suspend fun start() {
-        shouldStop = false
-        loop()
-    }
-
-    fun stop() {
-        println("stop")
-        shouldStop = true
-    }
-
-    fun stopPermanently() {
-        stop()
-        localStorageRepo.saveEnabledState(false)
-    }
-
     companion object {
         // all the default values
         const val DEFAULT_SCAN_INTERVAL_MILLIS = (3 * 60 * 1000).toLong()
@@ -219,3 +218,11 @@ class MonitoringLooper(
         const val DEFAULT_TURNED_OFF_MIN_THRESHOLD_MILLIS = (7 * 60 * 1000).toLong()
     }
 }
+
+@JsonClass(generateAdapter = true)
+data class TimingThresholds(
+    val scanInterval: Long = MonitoringLooper.DEFAULT_SCAN_INTERVAL_MILLIS,
+    val turnOffThreshold: Long = MonitoringLooper.DEFAULT_TURN_OFF_THRESHOLD_MILLIS,
+    val turnOnThreshold: Long = MonitoringLooper.DEFAULT_TURN_ON_THRESHOLD_MILLIS,
+    val turnedOffMinThreshold: Long = MonitoringLooper.DEFAULT_TURNED_OFF_MIN_THRESHOLD_MILLIS
+)
