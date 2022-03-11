@@ -1,4 +1,3 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
 
     val composeVersion by extra("1.1.1")
@@ -12,8 +11,19 @@ buildscript {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10")
     }
 }
+
 plugins {
-    id("io.gitlab.arturbosch.detekt").version("1.17.1")
+    id("io.gitlab.arturbosch.detekt").version("1.19.0")
+}
+
+subprojects {
+    apply {
+        plugin("io.gitlab.arturbosch.detekt")
+    }
+
+    detekt {
+        config = rootProject.files("config/detekt/detekt.yml")
+    }
 }
 
 tasks.register("clean", Delete::class) {
