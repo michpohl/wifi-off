@@ -1,8 +1,7 @@
 package com.michaelpohl.wifiservice.looper
 
-//
-
 import com.michaelpohl.wifiservice.CommandRunner
+import com.michaelpohl.wifiservice.changePrivatePropertyTo
 import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifiservice.model.WifiList
 import com.michaelpohl.wifiservice.storage.LocalStorage
@@ -19,7 +18,6 @@ import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import java.util.*
 
-//
 @ExperimentalCoroutinesApi
 @RunWith(JUnit4::class)
 class MonitoringLooperTest : TestCase() {
@@ -37,7 +35,7 @@ class MonitoringLooperTest : TestCase() {
         commandRunner = mockk() {
             every { isWithinReachOfKnownCellTowers(any()) } returns false
         }
-        storage = mockk() {
+        storage = mockk(relaxed = true) {
             every { savedKnownWifis } returns WifiList(listOf())
         }
         mockkObject(CommandRunner.Companion)
@@ -118,220 +116,199 @@ class MonitoringLooperTest : TestCase() {
         }
 
     @Test
-    fun `if connected to wifi, a new state with proper time stamps and instruction to WAIT is generated`() = runTest {
+    fun `If connected to a wifi, lastConnected gets set to now, instruction is WAIT`() = runTest {
         // given
-        val dummyWifiList = WifiList(
-            listOf(
-                WifiData("ssid1", listOf("cellID1", "cellID2")),
-                WifiData("ssid2", listOf("cellID3", "cellID4", "cellID5"))
-            )
-        )
-
-        every { commandRunner.isConnectedToAnyValidSSIDs(dummyWifiList.wifis.map { it.ssid }) } returns true
-        every { storage.savedKnownWifis } returns dummyWifiList
         every { commandRunner.isWifiOn() } returns true
+        every { commandRunner.isConnectedToAnyWifi() } returns true
+        every { commandRunner.getCurrentConnectedWifi() } returns WifiData("ssid", listOf())
 
         // when
         launch {
             looper.start()
         }
-        advanceTimeBy(MonitoringLooper.DEFAULT_SCAN_INTERVAL_MILLIS + 1)
+        advanceTimeBy(25)
         looper.stop()
 
         // then
         val result = states.last()
-        assertNotSame(0, result.lastChecked)
-        assertNotSame(0, result.lastConnected)
-        assertEquals(0, result.firstCellSeen)
+        assertEquals("Instruction should be WAIT", WifiInstruction.WAIT, result.instruction)
+    }
+
+    @Test
+    fun `If connected to a known wifi, cellIDS get updated if different`() = runTest {
+        // given
+        val savedDummyWifi = WifiData("ssid", listOf("123", "456"))
+        val updatedDummyWifi = WifiData("ssid", listOf("456", "789"))
+        val expectedWifiToBeSaved = WifiData("ssid", listOf("123", "456", "789")) // we expect to save all found cellIDs
+        every { commandRunner.isWifiOn() } returns true
+        every { commandRunner.isConnectedToAnyWifi() } returns true
+        every { commandRunner.getCurrentConnectedWifi() } returns updatedDummyWifi
+        every { storage.savedKnownWifis } returns WifiList(listOf(savedDummyWifi))
+        // when
+        launch {
+            looper.start()
+        }
+        advanceTimeBy(1)
+        looper.stop()
+
+        // then
+        val result = states.last()
+        verify(exactly = 1) { storage.saveWifi(expectedWifiToBeSaved) }
+    }
+
+    @Test
+    fun `If not connected to wifi, turn wifi off once past turnOffThreshold`() = runTest {
+        // given
+        every { commandRunner.isWifiOn() } returns true
+        every { commandRunner.isConnectedToAnyWifi() } returns false
+        val now = Date().time - 500
+        setLooperState(MonitoringState(lastConnected = now))
+        // when
+        launch {
+            looper.start()
+        }
+        advanceTimeBy(1)
+        looper.stop()
+
+        // then
+        val result = states.last()
+        assertEquals(WifiInstruction.TURN_OFF, result.instruction)
+    }
+
+    @Test
+    fun `If not connected to wifi, don't turn off before turnOffThreshold is reached`() = runTest {
+        // given
+        every { commandRunner.isWifiOn() } returns true
+        every { commandRunner.isConnectedToAnyWifi() } returns false
+        val now = Date().time + 1000 // we add a generous 1000ms to offset the time the test might take to run
+        setLooperState(MonitoringState(lastConnected = now))
+        // when
+        launch {
+            looper.start()
+        }
+        advanceTimeBy(1)
+        looper.stop()
+
+        // then
+        val result = states.last()
         assertEquals(WifiInstruction.WAIT, result.instruction)
     }
 
-//    @Test
-//    fun `if wifi is on, but no valid SSID around, change instruction to WAIT if threshold is not
-//    met`() = runBlockingTest
-//    {
-//        // given
-//        val dummyWifiList = WifiList(listOf(WifiData("ssid1", "cellId1"), WifiData("ssid2", ]
-//        "cellId2")))
-//        every { storage.savedKnownWifis } returns dummyWifiList
-//        every { commandRunner.isConnectedToAnyValidSSIDs(dummyWifiList.wifis.map { it.ssid }) } \]
-//        returns true
-//        every { commandRunner.isWifiOn() } returns true
-//
-//        val now = Date().time
-//        setLooperState(
-//            State(instruction = WifiInstruction.TURN_OFF, lastChecked = now, lastConnected = now)
-//        )
-//
-//        // when
-//        launch {
-//            looper.loop()
-//        }
-//        advanceTimeBy(SCAN_INTERVAL_MILLIS + 1)
-//        looper.stop()
-//
-//        // then
-//        val result = states.last()
-//        assertNotSame(now, result.lastChecked)
-//        assertNotSame(now, result.lastConnected)
-//        assertEquals(true, result.isWifiOn)
-//        assertEquals(WifiInstruction.WAIT, result.instruction)
-//    }
-//
-//    @Test
-//    fun `if not connected to wifi and wifi is off, a new state with proper time stamps and WAIT is generated`() =
-//        runBlockingTest {
-//            // given
-//            val dummyWifiList =
-//                WifiList(listOf(WifiData("ssid1", "cellId1"), WifiData("ssid2", "cellId2")))
-//            every { storage.savedKnownWifis } returns dummyWifiList
-//            every { commandRunner.isConnectedToAnyValidSSIDs(dummyWifiList.wifis.map { it.ssid }) } returns false
-//            every { commandRunner.isWifiOn() } returns false
-//            every { commandRunner.isWithinReachOfKnownCellTowers(dummyWifiList.wifis.map { it.cellID }) } returns false
-//
-//            // when
-//            launch {
-//                looper.loop()
-//            }
-//            advanceTimeBy(SCAN_INTERVAL_MILLIS + 1)
-//            looper.stop()
-//
-//            // then
-//            val result = states.last()
-//            assertNotSame(0, result.lastChecked)
-//            assertEquals(0, result.lastConnected)
-//            assertEquals(0, result.firstCellSeen)
-//            assertEquals(WifiInstruction.WAIT, result.instruction)
-//        }
-//
-//    @Test
-//    fun `if wifi is on, but no known SSID around, set instruction to TURN_OFF if threshold is met`() =
-//        runBlockingTest {
-//            // given
-//            val dummyWifiList =
-//                WifiList(listOf(WifiData("ssid1", "cellId1"), WifiData("ssid2", "cellId2")))
-//            every { storage.savedKnownWifis } returns dummyWifiList
-//            every { commandRunner.isConnectedToAnyValidSSIDs(dummyWifiList.wifis.map { it.ssid }) } returns false
-//            every { commandRunner.isWifiOn() } returns true
-//            every { commandRunner.isWithinReachOfKnownCellTowers(dummyWifiList.wifis.map { it.cellID }) } returns false
-//            val now = Date().time
-//            setLooperState(
-//                State(
-//                    lastChecked = now,
-//                    lastConnected = now - TURN_OFF_THRESHOLD_MILLIS
-//                )
-//            )
-//
-//            // when
-//            launch {
-//                looper.loop()
-//            }
-//
-//            advanceTimeBy(SCAN_INTERVAL_MILLIS + 1)
-//            looper.stop()
-//
-//            // then
-//            val result = states.last()
-//            assertNotSame(now, result.lastChecked)
-//            assertNotSame(result.lastChecked, result.lastConnected)
-//            assertEquals(WifiInstruction.TURN_OFF, result.instruction)
-//        }
-//
-//    @Test
-//    fun `if wifi is on post threshold, turn off even if a cell tower is around`() =
-//        runBlockingTest {
-//            // given
-//            val dummyWifiList =
-//                WifiList(listOf(WifiData("ssid1", "cellId1"), WifiData("ssid2", "cellId2")))
-//            every { storage.savedKnownWifis } returns dummyWifiList
-//            every { commandRunner.isConnectedToAnyValidSSIDs(dummyWifiList.wifis.map { it.ssid }) } returns false
-//            every { commandRunner.isWifiOn() } returns true
-//            every { commandRunner.isWithinReachOfKnownCellTowers(dummyWifiList.wifis.map { it.cellID }) } returns true
-//            val now = Date().time
-//            setLooperState(
-//                State(
-//                    lastChecked = now,
-//                    lastConnected = now - TURN_OFF_THRESHOLD_MILLIS
-//                )
-//            )
-//
-//            // when
-//            launch {
-//                looper.loop()
-//            }
-//
-//            advanceTimeBy(SCAN_INTERVAL_MILLIS + 1)
-//            looper.stop()
-//
-//            // then
-//            val result = states.last()
-//            assertNotSame(now, result.lastChecked)
-//            assertNotSame(result.lastChecked, result.lastConnected)
-//            assertEquals(WifiInstruction.TURN_OFF, result.instruction)
-//        }
-//
-//    @Test
-//    fun `if wifi is off and within reach of known cell, set state instruction to TURN_ON if i
-//    nterval is big enough`() =
-//    runBlockingTest
-//    {
-//        // given
-//        val dummyWifiList =
-//            WifiList(listOf(WifiData("ssid1", "cellId1"), WifiData("ssid2", "cellId2")))
-//        every { storage.savedKnownWifis } returns dummyWifiList
-//        every { commandRunner.isConnectedToAnyValidSSIDs(dummyWifiList.wifis.map { it.ssid }) } returns false
-//        every { commandRunner.isWifiOn() } returns false
-//        every { commandRunner.isWithinReachOfKnownCellTowers(dummyWifiList.wifis.map { it.cellID }) } returns true
-//        val now = Date().time
-//        setLooperState(State(lastChecked = now, firstCellSeen = now - TURN_ON_THRESHOLD_MILLIS))
-//
-//        // when
-//        launch {
-//            looper.loop()
-//        }
-//
-//        advanceTimeBy(SCAN_INTERVAL_MILLIS + 1)
-//        looper.stop()
-//
-//        // then
-//        val result = states.last()
-//        assertNotSame(now, result.lastChecked)
-//        assertEquals(0, result.lastConnected)
-//        assertEquals(now - TURN_ON_THRESHOLD_MILLIS, result.firstCellSeen)
-//        assertEquals(WifiInstruction.TURN_ON, result.instruction)
-//    }
-//
-//    @Test
-//    fun `if wifi is off and within reach of known cell, set state instruction to WAIT if interval
-//    is not big enough`() =
-//    runBlockingTest
-//    {
-//        // given
-//        val dummyWifiList =
-//            WifiList(listOf(WifiData("ssid1", "cellId1"), WifiData("ssid2", "cellId2")))
-//        every { storage.savedKnownWifis } returns dummyWifiList
-//        every { commandRunner.isConnectedToAnyValidSSIDs(dummyWifiList.wifis.map { it.ssid }) } returns false
-//        every { commandRunner.isWifiOn() } returns false
-//        every { commandRunner.isWithinReachOfKnownCellTowers(dummyWifiList.wifis.map { it.cellID }) } returns true
-//        val now = Date().time
-//        setLooperState(State(lastChecked = now, firstCellSeen = now))
-//
-//        // when
-//        launch {
-//            looper.loop()
-//        }
-//        advanceTimeBy(SCAN_INTERVAL_MILLIS + 1)
-//        looper.stop()
-//
-//        // then
-//        val result = states.last()
-//        assertNotSame(now, result.lastChecked)
-//        assertEquals(0, result.lastConnected)
-//        assertEquals(now, result.firstCellSeen)
-//        assertEquals(WifiInstruction.WAIT, result.instruction)
-//    }
-//
-//    private fun setLooperState(state: State) {
-//        looper.changePrivatePropertyTo("currentState", state)
-//    }
+    @Test
+    fun `If not connected to wifi and lastConnected is not set, it gets set with the next status update`() = runTest {
+        // given
+        every { commandRunner.isWifiOn() } returns true
+        every { commandRunner.isConnectedToAnyWifi() } returns false
+
+        // when
+        launch {
+            looper.start()
+        }
+        advanceTimeBy(1)
+        looper.stop()
+
+        // then
+        assertNull("First state should have lastConnected not set", states.first().lastConnected)
+        assertNotNull("Last state should have lastConnected set", states.last().lastConnected)
+    }
+
+    @Test
+    fun `If wifi is off do nothing before wifiTurnedOffMinThreshold is reached`() = runTest {
+        // given
+        every { commandRunner.isWifiOn() } returns false
+
+        // when
+        launch {
+            looper.start()
+        }
+        advanceTimeBy(1)
+        looper.stop()
+
+        // then
+        assertEquals(
+            "Instruction should be WAIT when threshold is not reached", WifiInstruction.WAIT, states.last().instruction
+        )
+    }
+
+    @Test
+    fun `If wifi is off and wifiTurnedOffAt is not set, set it on the next status update`() = runTest {
+        // given
+        every { commandRunner.isWifiOn() } returns false
+
+        // when
+        launch {
+            looper.start()
+        }
+        advanceTimeBy(1)
+        looper.stop()
+
+        // then
+        assertNull("First state should have wifiTurnedOffAt not set", states.first().wifiTurnedOffAt)
+        assertNotNull("Last state should have wifiTurnedOffAt set", states.last().wifiTurnedOffAt)
+    }
+
+    @Test
+    fun `If wifiTurnedOffMinThreshold is reached, just wait if not within reach of known cell`() = runTest {
+        // given
+        every { commandRunner.isWifiOn() } returns false
+        every { commandRunner.isWithinReachOfKnownCellTowers(any()) } returns false
+
+        // when
+        launch {
+            looper.start()
+        }
+        advanceTimeBy(30)
+        looper.stop()
+
+        // then
+        assertEquals(
+            "Instruction should be WAIT if no known cell is around", WifiInstruction.WAIT, states.last().instruction
+        )
+    }
+
+    @Test
+    fun `If wifiTurnedOffThreshold is reached, turn on wifi ifa known cell is around and turnOnThreshold is passed`() =
+        runTest {
+            // given
+            every { commandRunner.isWifiOn() } returns false
+            every { commandRunner.isWithinReachOfKnownCellTowers(any()) } returns true
+            val now = Date().time
+            setLooperState(MonitoringState(wifiTurnedOffAt = now - 500))
+
+            // when
+            launch {
+                looper.start()
+            }
+            advanceTimeBy(1)
+            looper.stop()
+
+            // then
+            assertEquals("", WifiInstruction.TURN_ON, states.last().instruction)
+        }
+
+    @Test
+    fun `If wifiTurnedOffThreshold is reached but turnOnThreshold is not, just wait`() = runTest {
+
+        // given
+        every { commandRunner.isWifiOn() } returns false
+        every { commandRunner.isWithinReachOfKnownCellTowers(any()) } returns true
+        val now = Date().time
+        looper = MonitoringLooper(commandRunner, storage, timing.copy(turnOnThreshold = 9000)) { states.add(it) }
+
+        setLooperState(MonitoringState(wifiTurnedOffAt = now - 500))
+
+        // when
+        launch {
+            looper.start()
+        }
+        advanceTimeBy(1)
+        looper.stop()
+
+        // then
+        assertEquals("", WifiInstruction.WAIT, states.last().instruction)
+    }
+
+    private fun setLooperState(state: MonitoringState) {
+        looper.changePrivatePropertyTo("currentState", state)
+    }
 }
