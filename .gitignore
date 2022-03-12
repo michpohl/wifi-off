@@ -90,3 +90,4 @@ lint/tmp/
 
 .idea/inspectionProfiles/Project_Default.xml
 .idea/misc.xml
+config/.DS_Store
