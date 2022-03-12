@@ -25,10 +25,7 @@ class CommandRunner {
         }
     }
 
-    private fun compareCellTowerID(
-        cellTowerId: String,
-        splitString: List<String>
-    ): WifiData {
+    private fun compareCellTowerID(cellTowerId: String, splitString: List<String>): WifiData {
         var idMatch = ""
         cellTowerRegex.find(cellTowerId)?.groups?.get(0)?.apply {
             this.value.forEach { if (it.isDigit()) idMatch = idMatch.plus(it) }
@@ -58,8 +55,7 @@ class CommandRunner {
     fun isConnectedToAnyValidSSIDs(ssids: List<String>): Boolean {
         var result = false
         ssids.forEach {
-            if (runShellCommand(ShellCommand.CHECK_SSID_COMMAND)?.contains(it) == true) result =
-                true
+            if (runShellCommand(ShellCommand.CHECK_SSID_COMMAND)?.contains(it) == true) result = true
         }
         return result
     }
@@ -101,15 +97,11 @@ class CommandRunner {
     }
 }
 
-class ShellCommand private constructor() {
-    companion object {
+object ShellCommand {
 
-        const val CHECK_CELL_TOWERS_COMMAND = "su -c dumpsys telephony.registry | grep \"mCi=\" -m1"
-        const val CHECK_SSID_COMMAND = "su -c dumpsys netstats | grep -E 'iface='"
-        const val TURN_WIFI_OFF = "su -c svc wifi disable"
-        const val TURN_WIFI_ON = "su -c svc wifi enable"
-        const val CHECK_WIFI_ON = "su -c settings get global wifi_on"
-    }
+    const val CHECK_CELL_TOWERS_COMMAND = "su -c dumpsys telephony.registry | grep \"mCi=\" -m1"
+    const val CHECK_SSID_COMMAND = "su -c dumpsys netstats | grep -E 'iface='"
+    const val TURN_WIFI_OFF = "su -c svc wifi disable"
+    const val TURN_WIFI_ON = "su -c svc wifi enable"
+    const val CHECK_WIFI_ON = "su -c settings get global wifi_on"
 }
-
-
