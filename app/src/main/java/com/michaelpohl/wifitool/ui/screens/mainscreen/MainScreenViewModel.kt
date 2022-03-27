@@ -2,6 +2,7 @@ package com.michaelpohl.wifitool.ui.screens.mainscreen
 
 import com.michaelpohl.wifiservice.MonitoringServiceConnection
 import com.michaelpohl.wifiservice.looper.MonitoringState
+import com.michaelpohl.wifiservice.looper.TimingThresholds
 import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifiservice.storage.LocalStorage
 import com.michaelpohl.wifitool.ui.common.UIStateFlowViewModel
@@ -72,6 +73,9 @@ class MainScreenViewModel(private val connection: MonitoringServiceConnection) :
             updateState(currentState.copy(isServiceEnabled = isEnabled))
         }
             ?: error("Service not accessible from ViewModel!")
+    }
+
+    fun onTimingsChanged(timings: TimingThresholds) {
     }
 }
 
