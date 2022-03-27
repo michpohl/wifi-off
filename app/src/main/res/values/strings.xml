@@ -18,4 +18,8 @@
     <string name="wifi_situation_connected">Connected to a Wifi network</string>
     <string name="wifi_situation_off">Wifi is off</string>
     <string name="wifi_situation_unknown">Wifi status currently unknown</string>
+    <string name="number_input_description_scan_interval">Scan interval in minutes</string>
+    <string name="number_input_description_turn_off_threshold">Waiting time before deactivating Wifi</string>
+    <string name="number_input_description_turn_on_threshold">Waiting time before activiting wifi</string>
+    <string name="number_input_description_turned_off_min_threshold">Minimum waiting time after wifi was turned off</string>
 </resources>

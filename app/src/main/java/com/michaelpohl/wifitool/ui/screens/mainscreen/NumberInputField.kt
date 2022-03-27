@@ -14,10 +14,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.michaelpohl.design.util.appTextStyles
+import com.michaelpohl.wifitool.ui.common.millisToMinutes
+import com.michaelpohl.wifitool.ui.common.minutesToMillis
 
+// TODO define input lenght in a smarter way
 @Composable
-fun NumberInputField(number: Int, focusManager: FocusManager, onNumberChanged: (Int) -> Unit) {
-    var currentNumberString = remember { mutableStateOf(number.toString()) }
+fun NumberInputField(number: Long, focusManager: FocusManager, onNumberChanged: (Long) -> Unit) {
+    val currentNumberString = remember { mutableStateOf(number.millisToMinutes().toString()) }
     OutlinedTextField(
         modifier = Modifier.requiredWidth(75.dp),
         textStyle = appTextStyles.body2.copy(textAlign = TextAlign.Center),
@@ -35,9 +38,9 @@ fun NumberInputField(number: Int, focusManager: FocusManager, onNumberChanged: (
         keyboardActions = KeyboardActions(onDone = {
             focusManager.clearFocus()
             if (currentNumberString.value.isBlank()) currentNumberString.value = "1"
-            val newNumber = currentNumberString.value.toInt()
+            val newNumber = currentNumberString.value.toLong()
             if (newNumber != number) {
-                onNumberChanged(newNumber)
+                onNumberChanged(newNumber.minutesToMillis())
             }
         })
     )
