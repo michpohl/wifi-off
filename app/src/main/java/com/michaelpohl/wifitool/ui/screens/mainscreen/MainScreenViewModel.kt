@@ -76,6 +76,6 @@ class MainScreenViewModel(private val connection: MonitoringServiceConnection) :
     }
 
     fun onTimingsChanged(timings: TimingThresholds) {
+        Timber.d("Timings changed: $timings")
     }
 }
-

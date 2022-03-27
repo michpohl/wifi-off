@@ -10,12 +10,12 @@ import java.util.*
 
 class MonitoringLooper(
     private val commandRunner: CommandRunner,
-    private val localStorageRepo: LocalStorage,
-    val thresholds: TimingThresholds = TimingThresholds(),
+    private val localStorage: LocalStorage,
     val onStateChanged: (MonitoringState) -> Unit
 
 ) {
 
+    private var timings = localStorage.savedTimings
     private var shouldStop = false
     private var now = 0L
 
@@ -38,7 +38,7 @@ class MonitoringLooper(
 
     fun stopPermanently() {
         stop()
-        localStorageRepo.saveEnabledState(false)
+        localStorage.saveEnabledState(false)
     }
 
     private suspend fun loop() {
@@ -51,7 +51,7 @@ class MonitoringLooper(
         } else {
             handleWifiOff()
         }
-        delay(thresholds.scanInterval)
+        delay(timings.scanInterval)
         loop()
     }
 
@@ -75,12 +75,12 @@ class MonitoringLooper(
         // TODO clean this up once logic is sound
         val currentConnectedWifi = getCurrentConnectedWifi()
         val wifiToReturn = currentConnectedWifi?.let { current ->
-            var savedCopy = localStorageRepo.savedKnownWifis.wifis.find { it.ssid == current.ssid }
+            var savedCopy = localStorage.savedKnownWifis.wifis.find { it.ssid == current.ssid }
             if (savedCopy != null) {
                 if (!savedCopy.cellIDs.containsAll(current.cellIDs)) {
                     val newCellIds = (savedCopy.cellIDs + current.cellIDs).distinct()
                     savedCopy = current.copy(cellIDs = newCellIds)
-                    localStorageRepo.saveWifi(savedCopy)
+                    localStorage.saveWifi(savedCopy)
                 }
             }
             savedCopy
@@ -99,8 +99,8 @@ class MonitoringLooper(
         Timber.d("HandleNotConnectedToWifi")
         // check threshold, disconnect if qualified
         currentState.lastConnected?.let { lastConnectedTime ->
-            currentState = if (now - thresholds.turnOffThreshold > lastConnectedTime) {
-                Timber.d("Turning wifi off, past threshold: ${thresholds.turnOffThreshold}")
+            currentState = if (now - timings.turnOffThreshold > lastConnectedTime) {
+                Timber.d("Turning wifi off, past threshold: ${timings.turnOffThreshold}")
                 currentState.copy(
                     lastChecked = now,
                     wifiTurnedOffAt = now,
@@ -133,8 +133,8 @@ class MonitoringLooper(
         Timber.d("HandleWifiOff")
         // if turnedOffThreshold passed
         currentState.wifiTurnedOffAt?.let {
-            Timber.d("Difference: ${now - thresholds.turnedOffMinThreshold - it}")
-            if (now - thresholds.turnedOffMinThreshold > it) {
+            Timber.d("Difference: ${now - timings.turnedOffMinThreshold - it}")
+            if (now - timings.turnedOffMinThreshold > it) {
                 handlePastWifiOffThreshold()
             } else {
                 currentState = currentState.copy(
@@ -153,7 +153,7 @@ class MonitoringLooper(
     private fun handlePastWifiOffThreshold() {
         Timber.d("HandlePastWifiOffThreshold")
         val isConnectedToKnownCell =
-            commandRunner.isWithinReachOfKnownCellTowers(localStorageRepo.savedKnownWifis.wifis)
+            commandRunner.isWithinReachOfKnownCellTowers(localStorage.savedKnownWifis.wifis)
         if (isConnectedToKnownCell) {
             handleConnectedToKnownCell()
         } else {
@@ -169,7 +169,7 @@ class MonitoringLooper(
         Timber.d("HandleConnectedToKnownCell")
         currentState.wifiTurnedOffAt?.let { wifiTurnedOffTime ->
 
-            if (now - thresholds.turnOnThreshold > wifiTurnedOffTime) {
+            if (now - timings.turnOnThreshold > wifiTurnedOffTime) {
                 Timber.d("Past threshold, turning wifi on")
                 currentState = currentState.copy(
                     lastChecked = now, wifiTurnedOffAt = null, instruction = WifiInstruction.TURN_ON
@@ -187,6 +187,15 @@ class MonitoringLooper(
         return commandRunner.getCurrentConnectedWifi()
     }
 
+}
+
+@JsonClass(generateAdapter = true)
+data class TimingThresholds(
+    val scanInterval: Long = DEFAULT_SCAN_INTERVAL_MILLIS,
+    val turnOffThreshold: Long = DEFAULT_TURN_OFF_THRESHOLD_MILLIS,
+    val turnOnThreshold: Long = DEFAULT_TURN_ON_THRESHOLD_MILLIS,
+    val turnedOffMinThreshold: Long = DEFAULT_TURNED_OFF_MIN_THRESHOLD_MILLIS
+) {
     companion object {
 
         // all the default values
@@ -195,12 +204,5 @@ class MonitoringLooper(
         const val DEFAULT_TURN_ON_THRESHOLD_MILLIS = (3.5 * 60 * 1000).toLong()
         const val DEFAULT_TURNED_OFF_MIN_THRESHOLD_MILLIS = (7 * 60 * 1000).toLong()
     }
-}
 
-@JsonClass(generateAdapter = true)
-data class TimingThresholds(
-    val scanInterval: Long = MonitoringLooper.DEFAULT_SCAN_INTERVAL_MILLIS,
-    val turnOffThreshold: Long = MonitoringLooper.DEFAULT_TURN_OFF_THRESHOLD_MILLIS,
-    val turnOnThreshold: Long = MonitoringLooper.DEFAULT_TURN_ON_THRESHOLD_MILLIS,
-    val turnedOffMinThreshold: Long = MonitoringLooper.DEFAULT_TURNED_OFF_MIN_THRESHOLD_MILLIS
-)
+}

@@ -1,6 +1,7 @@
 package com.michaelpohl.wifiservice.storage
 
 import android.content.SharedPreferences
+import com.michaelpohl.wifiservice.looper.TimingThresholds
 import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifiservice.model.WifiList
 import com.squareup.moshi.Moshi
@@ -8,10 +9,15 @@ import timber.log.Timber
 
 class LocalStorage(private val sharedPreferences: SharedPreferences, moshi: Moshi) {
 
-    private val adapter = moshi.adapter(WifiList::class.java)
-    // TODO what is up with this var and the get method? No point doing it like this
+    private val wifiAdapter = moshi.adapter(WifiList::class.java)
+    private val timingsAdapter = moshi.adapter(TimingThresholds::class.java)
+
+    // public vars for these values so we can query them often without having to go through the whole
+    // loading from SharedPreferences
     var savedKnownWifis = loadSavedWifis()
-    private set
+        private set
+    var savedTimings = loadTimings()
+        private set
 
     fun saveWifi(wifi: WifiData) {
         val knownWifis = loadSavedWifis().wifis.toMutableList()
@@ -23,7 +29,7 @@ class LocalStorage(private val sharedPreferences: SharedPreferences, moshi: Mosh
         }
         knownWifis.add(wifi)
         with(sharedPreferences.edit()) {
-            putString(WIFIS_TAG, adapter.toJson(WifiList(knownWifis)))
+            putString(WIFIS_TAG, wifiAdapter.toJson(WifiList(knownWifis)))
             apply()
         }
         savedKnownWifis = WifiList(knownWifis)
@@ -38,14 +44,14 @@ class LocalStorage(private val sharedPreferences: SharedPreferences, moshi: Mosh
             knownWifis.removeAt(it)
         }
         with(sharedPreferences.edit()) {
-            putString(WIFIS_TAG, adapter.toJson(WifiList(knownWifis)))
+            putString(WIFIS_TAG, wifiAdapter.toJson(WifiList(knownWifis)))
             apply()
         }
         savedKnownWifis = WifiList(knownWifis)
     }
 
     fun saveEnabledState(isEnabled: Boolean) {
-        with (sharedPreferences.edit()) {
+        with(sharedPreferences.edit()) {
             putBoolean(ENABLED_STATE_TAG, isEnabled)
             apply()
         }
@@ -56,10 +62,24 @@ class LocalStorage(private val sharedPreferences: SharedPreferences, moshi: Mosh
         return sharedPreferences.getBoolean(ENABLED_STATE_TAG, false)
     }
 
+    fun saveTimings(timings: TimingThresholds) {
+        with(sharedPreferences.edit()) {
+            putString(TIMINGS_TAG, timingsAdapter.toJson(timings))
+            apply()
+        }
+    }
+
+    private fun loadTimings(): TimingThresholds {
+        val timingsJson = sharedPreferences.getString(TIMINGS_TAG, null)
+        return timingsJson?.let {
+            timingsAdapter.fromJson(it)
+        } ?: TimingThresholds()
+    }
+
     private fun loadSavedWifis(): WifiList {
         val wifiJson = sharedPreferences.getString(WIFIS_TAG, null)
         return wifiJson?.let {
-            adapter.fromJson(wifiJson)
+            wifiAdapter.fromJson(wifiJson)
         } ?: WifiList(listOf())
     }
 
@@ -67,5 +87,6 @@ class LocalStorage(private val sharedPreferences: SharedPreferences, moshi: Mosh
 
         private const val WIFIS_TAG = "knownwifis"
         private const val ENABLED_STATE_TAG = "isenabled"
+        private const val TIMINGS_TAG = "timingstag"
     }
 }
