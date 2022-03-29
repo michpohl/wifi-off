@@ -3,6 +3,7 @@ package com.michaelpohl.wifiservice.looper
 import com.michaelpohl.wifiservice.CommandRunner
 import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifiservice.storage.LocalStorage
+import com.michaelpohl.wifitool.shared.millisToMinutes
 import com.squareup.moshi.JsonClass
 import kotlinx.coroutines.delay
 import timber.log.Timber
@@ -51,7 +52,11 @@ class MonitoringLooper(
         } else {
             handleWifiOff()
         }
+        // We get the current timings from storage with every run of the loop to
+        // pick up possible changes
+        timings = localStorage.savedTimings
         delay(timings.scanInterval)
+        Timber.d("Sleeping for ${timings.scanInterval.millisToMinutes()}")
         loop()
     }
 
@@ -186,7 +191,6 @@ class MonitoringLooper(
     private fun getCurrentConnectedWifi(): WifiData? {
         return commandRunner.getCurrentConnectedWifi()
     }
-
 }
 
 @JsonClass(generateAdapter = true)
@@ -204,5 +208,4 @@ data class TimingThresholds(
         const val DEFAULT_TURN_ON_THRESHOLD_MILLIS = (3.5 * 60 * 1000).toLong()
         const val DEFAULT_TURNED_OFF_MIN_THRESHOLD_MILLIS = (7 * 60 * 1000).toLong()
     }
-
 }

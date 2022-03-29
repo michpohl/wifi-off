@@ -48,9 +48,3 @@ fun SavedWifiEntry(
         }
     }
 }
-
-@Preview
-@Composable
-fun ComposablePreview() {
-    SavedWifiEntry(wifi = WifiData("some ssid", listOf("4354678", "435355"))) {}
-}

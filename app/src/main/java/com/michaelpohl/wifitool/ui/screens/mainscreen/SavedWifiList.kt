@@ -27,13 +27,13 @@ fun SavedWifiList(
             onExpandClicked = onExpandClicked
         )
         if (isExpanded) {
-            LazyColumn(
+            Column(
                 Modifier
                     .fillMaxWidth()
                     .background(color = appColors.background)
             ) {
-                itemsIndexed(state.wifis.wifis) { _, wifi ->
-                    SavedWifiEntry(wifi, onDeleteWifiClicked)
+                state.wifis.wifis.forEach {
+                    SavedWifiEntry(it, onDeleteWifiClicked)
                 }
             }
         }

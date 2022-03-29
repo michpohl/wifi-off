@@ -8,12 +8,12 @@ apply {
 }
 
 android {
-    compileSdk = 31
+    compileSdk = 32
     buildToolsVersion = "30.0.3"
 
     defaultConfig {
-        minSdk = 21
-        targetSdk = 30
+        minSdk = 29
+        targetSdk = 32
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -60,4 +60,3 @@ dependencies {
     api("androidx.compose.runtime:runtime-livedata:${rootProject.extra["composeVersion"]}")
     api("androidx.lifecycle:lifecycle-viewmodel-compose:2.4.1")
 }
-

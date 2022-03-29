@@ -5,7 +5,6 @@ plugins {
     id("com.google.devtools.ksp").version("1.6.10-1.0.4")
 }
 
-
 android {
     compileSdk = 32
     buildToolsVersion = "30.0.3"
@@ -39,6 +38,7 @@ android {
 dependencies {
 
     implementation(project(mapOf("path" to ":design")))
+    implementation(project(mapOf("path" to ":shared")))
 
     // Logging
     api("com.jakewharton.timber:timber:4.7.1")
@@ -65,7 +65,6 @@ dependencies {
     implementation("androidx.media:media:1.5.0")
     implementation("androidx.appcompat:appcompat:1.4.1")
     implementation("com.google.android.material:material:1.5.0")
-
 
     testImplementation("junit:junit:4.+")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")

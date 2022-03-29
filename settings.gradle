@@ -10,3 +10,4 @@ rootProject.name = "Wifi Tool"
 include ':app'
 include ':service'
 include ':design'
+include ':shared'

@@ -36,29 +36,23 @@ fun LogList(
         )
         if (isExpanded) {
 
-            LazyColumn(
-                state = listState,
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight()
                     .background(color = appColors.background)
             ) {
-                items(count = state.timberMessages.get().size, itemContent = { index ->
-                    with(state.timberMessages.get()[index]) {
+               state.timberMessages.get().forEach {
+
                         Text(
-                            text = this,
+                            text = it,
                             fontSize = 9.sp,
                             modifier = Modifier.padding(start = 16.dp, end = 16.dp)
                         )
                         Divider(modifier = Modifier.fillMaxWidth(), thickness = 0.6.dp)
                     }
-                })
-                if (state.timberMessages.get().size > 1) {
-                    scope.launch {
-                        listState.animateScrollToItem(state.timberMessages.get().size - 1)
-                    }
                 }
-            }
+
         }
     }
 }

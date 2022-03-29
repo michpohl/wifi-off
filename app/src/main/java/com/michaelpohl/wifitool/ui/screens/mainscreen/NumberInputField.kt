@@ -14,8 +14,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.michaelpohl.design.util.appTextStyles
-import com.michaelpohl.wifitool.ui.common.millisToMinutes
-import com.michaelpohl.wifitool.ui.common.minutesToMillis
+import com.michaelpohl.wifitool.shared.millisToMinutes
+import com.michaelpohl.wifitool.shared.minutesToMillis
 
 // TODO define input lenght in a smarter way
 @Composable
