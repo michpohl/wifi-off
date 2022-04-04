@@ -23,13 +23,11 @@ class MainScreenViewModel(private val connection: MonitoringServiceConnection) :
         val isServiceEnabled = localStorage.loadEnabledState()
         updateState(
             currentState.copy(
-                wifis = localStorage.savedKnownWifis,
-                isServiceEnabled = isServiceEnabled
+                wifis = localStorage.savedKnownWifis, isServiceEnabled = isServiceEnabled
             )
         )
         toggleServiceEnabled(isServiceEnabled)
     }
-
 
     fun saveWifi(wifi: WifiData) {
         localStorage.saveWifi(wifi)
@@ -44,8 +42,7 @@ class MainScreenViewModel(private val connection: MonitoringServiceConnection) :
     fun onMonitoringStateChanged(state: MonitoringState) {
         updateState(
             currentState.copy(
-                currentConnectedWifi = state.connectedWifi,
-                wifiSituation = state.wifiSituation
+                currentConnectedWifi = state.connectedWifi, wifiSituation = state.wifiSituation
             )
         )
     }
@@ -61,7 +58,6 @@ class MainScreenViewModel(private val connection: MonitoringServiceConnection) :
     }
 
     fun toggleShowLogs(shouldShow: Boolean) {
-        Timber.d("ShouldShow: $shouldShow")
         updateState(currentState.copy(showLogs = shouldShow))
     }
 
@@ -71,11 +67,10 @@ class MainScreenViewModel(private val connection: MonitoringServiceConnection) :
             it.isEnabled = isEnabled
             localStorage.saveEnabledState(isEnabled = isEnabled)
             updateState(currentState.copy(isServiceEnabled = isEnabled))
-        }
-            ?: error("Service not accessible from ViewModel!")
+        } ?: error("Service not accessible from ViewModel!")
     }
 
     fun onTimingsChanged(timings: TimingThresholds) {
-        Timber.d("Timings changed: $timings")
+        localStorage.saveTimings(timings)
     }
 }

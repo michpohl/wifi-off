@@ -16,6 +16,8 @@ import androidx.compose.ui.unit.dp
 import com.michaelpohl.design.util.appTextStyles
 import com.michaelpohl.wifitool.shared.millisToMinutes
 import com.michaelpohl.wifitool.shared.minutesToMillis
+import timber.log.Timber
+import kotlin.math.roundToLong
 
 // TODO define input lenght in a smarter way
 @Composable
@@ -38,9 +40,10 @@ fun NumberInputField(number: Long, focusManager: FocusManager, onNumberChanged: 
         keyboardActions = KeyboardActions(onDone = {
             focusManager.clearFocus()
             if (currentNumberString.value.isBlank()) currentNumberString.value = "1"
-            val newNumber = currentNumberString.value.toLong()
-            if (newNumber != number) {
-                onNumberChanged(newNumber.minutesToMillis())
+            val newNumber = currentNumberString.value.toFloat()
+            if (newNumber != number.toFloat()) {
+                onNumberChanged(newNumber.roundToLong())
+                Timber.d("New number: $newNumber")
             }
         })
     )

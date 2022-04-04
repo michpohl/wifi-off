@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import com.michaelpohl.wifiservice.looper.TimingThresholds
 import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifiservice.model.WifiList
+import com.michaelpohl.wifitool.shared.largerOf
 import com.squareup.moshi.Moshi
 import timber.log.Timber
 
@@ -12,8 +13,8 @@ class LocalStorage(private val sharedPreferences: SharedPreferences, moshi: Mosh
     private val wifiAdapter = moshi.adapter(WifiList::class.java)
     private val timingsAdapter = moshi.adapter(TimingThresholds::class.java)
 
-    // public vars for these values so we can query them often without having to go through the whole
-    // loading from SharedPreferences
+    // public vars for these values so we can query them often without having to go
+    // through the whole loading from SharedPreferences
     var savedKnownWifis = loadSavedWifis()
         private set
     var savedTimings = loadTimings()
@@ -64,8 +65,9 @@ class LocalStorage(private val sharedPreferences: SharedPreferences, moshi: Mosh
 
     fun saveTimings(timings: TimingThresholds) {
         with(sharedPreferences.edit()) {
-            putString(TIMINGS_TAG, timingsAdapter.toJson(timings))
+            putString(TIMINGS_TAG, timingsAdapter.toJson(safeguardTimings(timings)))
             apply()
+            savedTimings = timings
         }
     }
 
@@ -81,6 +83,16 @@ class LocalStorage(private val sharedPreferences: SharedPreferences, moshi: Mosh
         return wifiJson?.let {
             wifiAdapter.fromJson(wifiJson)
         } ?: WifiList(listOf())
+    }
+
+    private fun safeguardTimings(timings: TimingThresholds): TimingThresholds {
+        Timber.d("Timings to save: $timings")
+        return timings.copy(
+            scanInterval = largerOf(timings.scanInterval, TimingThresholds.GENERAL_MIN_VALUE),
+            turnOffThreshold = largerOf(timings.turnOffThreshold, TimingThresholds.GENERAL_MIN_VALUE),
+            turnOnThreshold = largerOf(timings.turnOnThreshold, TimingThresholds.GENERAL_MIN_VALUE),
+            turnedOffMinThreshold = largerOf(timings.turnedOffMinThreshold, TimingThresholds.GENERAL_MIN_VALUE)
+        )
     }
 
     companion object {

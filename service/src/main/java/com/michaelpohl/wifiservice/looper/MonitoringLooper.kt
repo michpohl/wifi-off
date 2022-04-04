@@ -4,7 +4,6 @@ import com.michaelpohl.wifiservice.CommandRunner
 import com.michaelpohl.wifiservice.model.WifiData
 import com.michaelpohl.wifiservice.storage.LocalStorage
 import com.michaelpohl.wifitool.shared.millisToMinutes
-import com.squareup.moshi.JsonClass
 import kotlinx.coroutines.delay
 import timber.log.Timber
 import java.util.*
@@ -190,22 +189,5 @@ class MonitoringLooper(
 
     private fun getCurrentConnectedWifi(): WifiData? {
         return commandRunner.getCurrentConnectedWifi()
-    }
-}
-
-@JsonClass(generateAdapter = true)
-data class TimingThresholds(
-    val scanInterval: Long = DEFAULT_SCAN_INTERVAL_MILLIS,
-    val turnOffThreshold: Long = DEFAULT_TURN_OFF_THRESHOLD_MILLIS,
-    val turnOnThreshold: Long = DEFAULT_TURN_ON_THRESHOLD_MILLIS,
-    val turnedOffMinThreshold: Long = DEFAULT_TURNED_OFF_MIN_THRESHOLD_MILLIS
-) {
-    companion object {
-
-        // all the default values
-        const val DEFAULT_SCAN_INTERVAL_MILLIS = (3 * 60 * 1000).toLong()
-        const val DEFAULT_TURN_OFF_THRESHOLD_MILLIS = (3.5 * 60 * 1000).toLong()
-        const val DEFAULT_TURN_ON_THRESHOLD_MILLIS = (3.5 * 60 * 1000).toLong()
-        const val DEFAULT_TURNED_OFF_MIN_THRESHOLD_MILLIS = (7 * 60 * 1000).toLong()
     }
 }
