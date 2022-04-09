@@ -41,9 +41,9 @@ fun NumberInputField(number: Long, focusManager: FocusManager, onNumberChanged: 
             focusManager.clearFocus()
             if (currentNumberString.value.isBlank()) currentNumberString.value = "1"
             val newNumber = currentNumberString.value.toFloat()
+            Timber.d("number string: ${currentNumberString.value}, New number: $newNumber")
             if (newNumber != number.toFloat()) {
-                onNumberChanged(newNumber.roundToLong())
-                Timber.d("New number: $newNumber")
+                onNumberChanged(newNumber.minutesToMillis().roundToLong())
             }
         })
     )
