@@ -78,7 +78,9 @@ class MonitoringLooper(
     private fun handleConnectedToWifi() {
         // TODO clean this up once logic is sound
         val currentConnectedWifi = getCurrentConnectedWifi()
-        val wifiToReturn = currentConnectedWifi?.let { current ->
+        val wifiToReturn = currentConnectedWifi
+
+        wifiToReturn?.let { current ->
             var savedCopy = localStorage.savedKnownWifis.wifis.find { it.ssid == current.ssid }
             if (savedCopy != null) {
                 if (!savedCopy.cellIDs.containsAll(current.cellIDs)) {
@@ -188,6 +190,8 @@ class MonitoringLooper(
     }
 
     private fun getCurrentConnectedWifi(): WifiData? {
-        return commandRunner.getCurrentConnectedWifi()
+        val result = commandRunner.getCurrentConnectedWifi()
+        Timber.d("current connected wifi: $result")
+        return result
     }
 }

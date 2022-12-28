@@ -6,12 +6,12 @@ plugins {
 }
 
 android {
-    compileSdk = 32
+    compileSdk = 33
     buildToolsVersion = "30.0.3"
 
     defaultConfig {
         minSdk = 29
-        targetSdk = 32
+        targetSdk = 33
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -44,8 +44,8 @@ dependencies {
     api("com.jakewharton.timber:timber:4.7.1")
 
     // Coroutines
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
-    api("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.1")
 
     // Koin DI
     api("io.insert-koin:koin-android:3.1.4")
@@ -61,23 +61,24 @@ dependencies {
     ksp("com.squareup.moshi:moshi-kotlin-codegen:1.13.0")
     ksp("dev.zacsweers.moshix:moshi-sealed-codegen:0.14.1")
 
-    implementation("androidx.core:core-ktx:1.7.0")
-    implementation("androidx.media:media:1.5.0")
-    implementation("androidx.appcompat:appcompat:1.4.1")
-    implementation("com.google.android.material:material:1.5.0")
+    implementation("androidx.core:core-ktx:1.9.0")
+    implementation("androidx.media:media:1.6.0")
+    implementation("androidx.appcompat:appcompat:1.5.1")
+    implementation("com.google.android.material:material:1.7.0")
+    implementation("androidx.work:work-runtime-ktx:2.7.1")
 
     testImplementation("junit:junit:4.+")
-    androidTestImplementation("androidx.test.ext:junit:1.1.3")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
+    androidTestImplementation("androidx.test.ext:junit:1.1.4")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.0")
     testImplementation("android.arch.core:core-testing:1.1.1")
     testImplementation("io.mockk:mockk:1.12.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.1")
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlin:kotlin-reflect:1.6.10")
+    testImplementation("org.jetbrains.kotlin:kotlin-reflect:1.7.10")
 
-    androidTestImplementation("androidx.test.ext:junit:1.1.3")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
+    androidTestImplementation("androidx.test.ext:junit:1.1.4")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.0")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.9.1")
     testImplementation("io.fabric8:mockwebserver:0.1.8")
-    implementation("androidx.core:core-ktx:1.7.0")
+    implementation("androidx.core:core-ktx:1.9.0")
 }

@@ -22,11 +22,11 @@ class NotificationHandler {
         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
 
         val servicePendingIntent = PendingIntent.getService(
-            context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
+            context, 0, intent, PENDING_INTENT_FLAG
         )
         // resume activity intent
         val activityPendingIntent = PendingIntent.getActivity(
-            context, REQUEST_CODE, Intent(context, activityClass), PendingIntent.FLAG_UPDATE_CURRENT
+            context, REQUEST_CODE, Intent(context, activityClass), PENDING_INTENT_FLAG
         )
 
         val builder =
@@ -73,6 +73,9 @@ class NotificationHandler {
     }
 
     companion object {
+
         const val REQUEST_CODE = 1221
+        val PENDING_INTENT_FLAG = if (Build.VERSION.SDK_INT > 30)
+            PendingIntent.FLAG_IMMUTABLE else PendingIntent.FLAG_UPDATE_CURRENT
     }
 }

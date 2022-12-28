@@ -25,7 +25,10 @@ fun MainScreen(viewModel: MainScreenViewModel) {
     }
     val state by stateFlow.collectAsState(MainScreenState())
     val scrollState = rememberScrollState()
-    Column(Modifier.fillMaxSize().verticalScroll(scrollState)) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)) {
         MainToggle(state) { viewModel.toggleServiceEnabled(it) }
         StatusInfo(state) { viewModel.saveWifi(it) }
         TimingSettings(state.timings, modifier = Modifier.padding(top = 16.dp)) { viewModel.onTimingsChanged(it) }

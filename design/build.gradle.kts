@@ -8,12 +8,12 @@ apply {
 }
 
 android {
-    compileSdk = 32
+    compileSdk = 33
     buildToolsVersion = "30.0.3"
 
     defaultConfig {
         minSdk = 29
-        targetSdk = 32
+        targetSdk = 33
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -51,9 +51,9 @@ configurations {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.7.0")
+    implementation("androidx.core:core-ktx:1.9.0")
 
-    api("androidx.activity:activity-compose:1.4.0")
+    api("androidx.activity:activity-compose:1.6.1")
     api("androidx.compose.ui:ui:${rootProject.extra["composeVersion"]}")
     api("androidx.compose.material:material:${rootProject.extra["composeVersion"]}")
     api("androidx.compose.ui:ui-tooling:${rootProject.extra["composeVersion"]}")
