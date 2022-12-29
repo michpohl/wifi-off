@@ -10,9 +10,9 @@ import java.util.*
 
 class MonitoringLooper(
     private val commandRunner: CommandRunner,
+    private val connectionChecker: WifiConnectionChecker,
     private val localStorage: LocalStorage,
     val onStateChanged: (MonitoringState) -> Unit
-
 ) {
 
     private var timings = localStorage.savedTimings
@@ -46,7 +46,7 @@ class MonitoringLooper(
         if (shouldStop) return
         // first we check if wifi is on
         now = Date().time
-        if (commandRunner.isWifiOn()) {
+        if (connectionChecker.isWifiOn()) {
             handleWifiOn()
         } else {
             handleWifiOff()
@@ -65,7 +65,7 @@ class MonitoringLooper(
             wifiTurnedOffAt = null
         )
         Timber.d("handleWifiOn")
-        val isConnected = commandRunner.isConnectedToAnyWifi()
+        val isConnected = connectionChecker.isConnectedToAnyWifi()
         Timber.d(" Is connected: $isConnected")
         if (isConnected) {
             handleConnectedToWifi()
@@ -174,8 +174,7 @@ class MonitoringLooper(
     private fun handleConnectedToKnownCell() {
         Timber.d("HandleConnectedToKnownCell")
         currentState.wifiTurnedOffAt?.let { wifiTurnedOffTime ->
-
-            if (now - timings.turnOnThreshold > wifiTurnedOffTime) {
+            if (now - wifiTurnedOffTime > timings.turnOnThreshold) {
                 Timber.d("Past threshold, turning wifi on")
                 currentState = currentState.copy(
                     lastChecked = now, wifiTurnedOffAt = null, instruction = WifiInstruction.TURN_ON

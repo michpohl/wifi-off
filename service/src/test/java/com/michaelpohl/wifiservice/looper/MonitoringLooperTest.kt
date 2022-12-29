@@ -25,21 +25,24 @@ class MonitoringLooperTest : TestCase() {
     private lateinit var looper: MonitoringLooper
     private lateinit var storage: LocalStorage
     private lateinit var commandRunner: CommandRunner
+    private lateinit var wifiConnectionChecker: WifiConnectionChecker
 
-    private val timing = TimingThresholds(10, 21, 21, 31)
+    private val timings = TimingThresholds(10, 21, 21, 31)
     private val states = mutableListOf<MonitoringState>()
 
     @Before
     public override fun setUp() {
         super.setUp()
+        wifiConnectionChecker = mockk()
         commandRunner = mockk() {
             every { isWithinReachOfKnownCellTowers(any()) } returns false
         }
         storage = mockk(relaxed = true) {
+            every { savedTimings } returns timings
             every { savedKnownWifis } returns WifiList(listOf())
         }
         mockkObject(CommandRunner.Companion)
-        looper = MonitoringLooper(commandRunner, storage, timing) { states.add(it) }
+        looper = MonitoringLooper(commandRunner, wifiConnectionChecker, storage) { states.add(it) }
     }
 
     @After
@@ -51,7 +54,7 @@ class MonitoringLooperTest : TestCase() {
     @Test
     fun `When MonitoringLooper is started, loop() is called and checks if Wifi is on`() = runTest {
         // given
-        every { commandRunner.isWifiOn() } returns false
+        every { wifiConnectionChecker.isWifiOn() } returns false
         every { storage.savedKnownWifis } returns WifiList(listOf())
 
         // when
@@ -62,16 +65,16 @@ class MonitoringLooperTest : TestCase() {
         looper.stop()
 
         // then
-        println(states.size)
+        Timber.d(states.size)
 
-        verify(exactly = 1) { commandRunner.isWifiOn() }
+        verify(exactly = 1) { wifiConnectionChecker.isWifiOn() }
     }
 
     @Test
     fun `With a fresh looper,Wifi is off and no known cell, state is updated with lastConnected = wifiTurnedoffAt`() =
         runTest {
             // given
-            every { commandRunner.isWifiOn() } returns false
+            every { wifiConnectionChecker.isWifiOn() } returns false
             every { storage.savedKnownWifis } returns WifiList(listOf())
             val now = Date().time
 
@@ -98,7 +101,7 @@ class MonitoringLooperTest : TestCase() {
     fun `A fresh MonitoringLooper with no wifi and no close cell should produce 2 state updates when looping once`() =
         runTest {
             // given
-            every { commandRunner.isWifiOn() } returns false
+            every { wifiConnectionChecker.isWifiOn() } returns false
             every { storage.savedKnownWifis } returns WifiList(listOf())
 
             // when
@@ -118,8 +121,8 @@ class MonitoringLooperTest : TestCase() {
     @Test
     fun `If connected to a wifi, lastConnected gets set to now, instruction is WAIT`() = runTest {
         // given
-        every { commandRunner.isWifiOn() } returns true
-        every { commandRunner.isConnectedToAnyWifi() } returns true
+        every { wifiConnectionChecker.isWifiOn() } returns true
+        every { wifiConnectionChecker.isConnectedToAnyWifi() } returns true
         every { commandRunner.getCurrentConnectedWifi() } returns WifiData("ssid", listOf())
 
         // when
@@ -140,8 +143,8 @@ class MonitoringLooperTest : TestCase() {
         val savedDummyWifi = WifiData("ssid", listOf("123", "456"))
         val updatedDummyWifi = WifiData("ssid", listOf("456", "789"))
         val expectedWifiToBeSaved = WifiData("ssid", listOf("123", "456", "789")) // we expect to save all found cellIDs
-        every { commandRunner.isWifiOn() } returns true
-        every { commandRunner.isConnectedToAnyWifi() } returns true
+        every { wifiConnectionChecker.isWifiOn() } returns true
+        every { wifiConnectionChecker.isConnectedToAnyWifi() } returns true
         every { commandRunner.getCurrentConnectedWifi() } returns updatedDummyWifi
         every { storage.savedKnownWifis } returns WifiList(listOf(savedDummyWifi))
         // when
@@ -159,8 +162,8 @@ class MonitoringLooperTest : TestCase() {
     @Test
     fun `If not connected to wifi, turn wifi off once past turnOffThreshold`() = runTest {
         // given
-        every { commandRunner.isWifiOn() } returns true
-        every { commandRunner.isConnectedToAnyWifi() } returns false
+        every { wifiConnectionChecker.isWifiOn() } returns true
+        every { wifiConnectionChecker.isConnectedToAnyWifi() } returns false
         val now = Date().time - 500
         setLooperState(MonitoringState(lastConnected = now))
         // when
@@ -178,8 +181,8 @@ class MonitoringLooperTest : TestCase() {
     @Test
     fun `If not connected to wifi, don't turn off before turnOffThreshold is reached`() = runTest {
         // given
-        every { commandRunner.isWifiOn() } returns true
-        every { commandRunner.isConnectedToAnyWifi() } returns false
+        every { wifiConnectionChecker.isWifiOn() } returns true
+        every { wifiConnectionChecker.isConnectedToAnyWifi() } returns false
         val now = Date().time + 1000 // we add a generous 1000ms to offset the time the test might take to run
         setLooperState(MonitoringState(lastConnected = now))
         // when
@@ -197,8 +200,8 @@ class MonitoringLooperTest : TestCase() {
     @Test
     fun `If not connected to wifi and lastConnected is not set, it gets set with the next status update`() = runTest {
         // given
-        every { commandRunner.isWifiOn() } returns true
-        every { commandRunner.isConnectedToAnyWifi() } returns false
+        every { wifiConnectionChecker.isWifiOn() } returns true
+        every { wifiConnectionChecker.isConnectedToAnyWifi() } returns false
 
         // when
         launch {
@@ -215,7 +218,7 @@ class MonitoringLooperTest : TestCase() {
     @Test
     fun `If wifi is off do nothing before wifiTurnedOffMinThreshold is reached`() = runTest {
         // given
-        every { commandRunner.isWifiOn() } returns false
+        every { wifiConnectionChecker.isWifiOn() } returns false
 
         // when
         launch {
@@ -233,7 +236,7 @@ class MonitoringLooperTest : TestCase() {
     @Test
     fun `If wifi is off and wifiTurnedOffAt is not set, set it on the next status update`() = runTest {
         // given
-        every { commandRunner.isWifiOn() } returns false
+        every { wifiConnectionChecker.isWifiOn() } returns false
 
         // when
         launch {
@@ -250,7 +253,7 @@ class MonitoringLooperTest : TestCase() {
     @Test
     fun `If wifiTurnedOffMinThreshold is reached, just wait if not within reach of known cell`() = runTest {
         // given
-        every { commandRunner.isWifiOn() } returns false
+        every { wifiConnectionChecker.isWifiOn() } returns false
         every { commandRunner.isWithinReachOfKnownCellTowers(any()) } returns false
 
         // when
@@ -267,13 +270,13 @@ class MonitoringLooperTest : TestCase() {
     }
 
     @Test
-    fun `If wifiTurnedOffThreshold is reached, turn on wifi ifa known cell is around and turnOnThreshold is passed`() =
+    fun `If wifiTurnedOffThreshold is reached, turn on wifi if a known cell is around and turnOnThreshold is passed`() =
         runTest {
             // given
-            every { commandRunner.isWifiOn() } returns false
+            every { wifiConnectionChecker.isWifiOn() } returns false
             every { commandRunner.isWithinReachOfKnownCellTowers(any()) } returns true
             val now = Date().time
-            setLooperState(MonitoringState(wifiTurnedOffAt = now - 500))
+            setLooperState(MonitoringState(wifiTurnedOffAt = now - 500)) // move it back to past more than threshold
 
             // when
             launch {
@@ -287,25 +290,25 @@ class MonitoringLooperTest : TestCase() {
         }
 
     @Test
-    fun `If wifiTurnedOffThreshold is reached but turnOnThreshold is not, just wait`() = runTest {
+    fun `If wifi is off & wifiTurnedOffThreshold is reached but turnOnThreshold is not, just wait`() = runTest {
 
         // given
-        every { commandRunner.isWifiOn() } returns false
+        every { wifiConnectionChecker.isWifiOn() } returns false
         every { commandRunner.isWithinReachOfKnownCellTowers(any()) } returns true
         val now = Date().time
-        looper = MonitoringLooper(commandRunner, storage, timing.copy(turnOnThreshold = 9000)) { states.add(it) }
+        looper = MonitoringLooper(commandRunner, wifiConnectionChecker, storage) { states.add(it) }
 
-        setLooperState(MonitoringState(wifiTurnedOffAt = now - 500))
+        setLooperState(MonitoringState(wifiTurnedOffAt = now - 5)) // move it back to past less than threshold
 
         // when
         launch {
             looper.start()
         }
-        advanceTimeBy(1)
+        advanceTimeBy(5)
         looper.stop()
 
         // then
-        assertEquals("", WifiInstruction.WAIT, states.last().instruction)
+        assertEquals("Incorrect Looper instruction:", WifiInstruction.WAIT, states.last().instruction)
     }
 
     private fun setLooperState(state: MonitoringState) {
